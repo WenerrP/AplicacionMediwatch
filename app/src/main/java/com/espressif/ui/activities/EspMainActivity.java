@@ -180,26 +180,27 @@ public class EspMainActivity extends AppCompatActivity {
 
     private void addDeviceClick() {
 
-        if (BuildConfig.isQrCodeSupported) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 
-            gotoQrCodeActivity();
+            if (!isLocationEnabled()) {
+                askForLocation();
+                return;
+            }
+        }
 
-        } else {
+        if (deviceType.equals(AppConstants.DEVICE_TYPE_BLE) || deviceType.equals(AppConstants.DEVICE_TYPE_BOTH)) {
 
-            if (deviceType.equals(AppConstants.DEVICE_TYPE_BLE) || deviceType.equals(AppConstants.DEVICE_TYPE_BOTH)) {
+            final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
+            BluetoothAdapter bleAdapter = bluetoothManager.getAdapter();
 
-                final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-                BluetoothAdapter bleAdapter = bluetoothManager.getAdapter();
-
-                if (!bleAdapter.isEnabled()) {
-                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-                } else {
-                    startProvisioningFlow();
-                }
+            if (!bleAdapter.isEnabled()) {
+                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
             } else {
                 startProvisioningFlow();
             }
+        } else {
+            startProvisioningFlow();
         }
     }
 
@@ -319,11 +320,6 @@ public class EspMainActivity extends AppCompatActivity {
 
         boolean result = gps_enabled || network_enabled;
         return result;
-    }
-
-    private void gotoQrCodeActivity() {
-        Intent intent = new Intent(EspMainActivity.this, AddDeviceActivity.class);
-        startActivity(intent);
     }
 
     private void goToBLEProvisionLandingActivity(int securityType) {

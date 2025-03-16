@@ -1,150 +1,144 @@
 <resources>
 
-    <string name="app_name">ESP Provisioning</string>
+    <string name="app_name">Aprovisionamiento ESP</string>
     <string name="app_name_ble">ESP BLE Prov</string>
     <string name="app_name_softap">ESP SoftAP Prov</string>
 
     <!-- Screen Titles -->
-    <string name="title_activity_connect_device">Connect to Device</string>
-    <string name="title_activity_pop">Proof of Possession</string>
-    <string name="title_activity_wifi_scan_list">Select Wi-Fi Network</string>
-    <string name="title_activity_wifi_config">Wi-Fi Configuration</string>
-    <string name="title_activity_thread_config">Thread Network Configuration</string>
-    <string name="title_activity_provisioning">Provisioning</string>
-    <string name="title_activity_settings">Settings</string>
-    <string name="title_activity_add_device">Add Device</string>
+    <string name="title_activity_connect_device">Conectar al Dispositivo</string>
+    <string name="title_activity_pop">Prueba de Posesión</string>
+    <string name="title_activity_wifi_scan_list">Seleccionar Red Wi-Fi</string>
+    <string name="title_activity_wifi_config">Configuración Wi-Fi</string>
+    <string name="title_activity_thread_config">Configuración de Red Thread</string>
+    <string name="title_activity_provisioning">Aprovisionamiento</string>
+    <string name="title_activity_settings">Configuración</string>
+    <string name="title_activity_add_device">Añadir Dispositivo</string>
 
     <!-- Button Text -->
-    <string name="btn_ok">OK</string>
-    <string name="btn_cancel">Cancel</string>
-    <string name="btn_next">Next</string>
-    <string name="btn_back">Back</string>
-    <string name="btn_provision">Provision</string>
-    <string name="btn_scan_qr_code">Scan QR Code</string>
-    <string name="btn_provision_device">Provision New Device</string>
-    <string name="btn_connect">Connect</string>
-    <string name="btn_connecting">Connecting&#8230;</string>
-    <string name="btn_wifi_settings">Go to Wi-Fi Settings</string>
-    <string name="btn_scan_again">Scan Again</string>
-    <string name="btn_no_qr_code">I don\'t have a QR code</string>
-    <string name="btn_save">Save</string>
-    <string name="btn_change_prefix">Change</string>
-    <string name="btn_yes">Yes</string>
-    <string name="btn_get_permission">Get Permission</string>
-    <string name="btn_try_again">Try Again</string>
+    <string name="btn_ok">Aceptar</string>
+    <string name="btn_cancel">Cancelar</string>
+    <string name="btn_next">Siguiente</string>
+    <string name="btn_back">Atrás</string>
+    <string name="btn_provision">Aprovisionar</string>
+    <string name="btn_provision_device">Aprovisionar Nuevo Dispositivo</string>
+    <string name="btn_connect">Conectar</string>
+    <string name="btn_connecting">Conectando&#8230;</string>
+    <string name="btn_wifi_settings">Ir a Configuración Wi-Fi</string>
+    <string name="btn_scan_again">Escanear de Nuevo</string>
+    <string name="btn_save">Guardar</string>
+    <string name="btn_change_prefix">Cambiar</string>
+    <string name="btn_yes">Sí</string>
+    <string name="btn_get_permission">Obtener Permiso</string>
+    <string name="btn_try_again">Intentar de Nuevo</string>
 
     <!-- Hint Text -->
-    <string name="hint_pop">Proof of Possession</string>
-    <string name="hint_ssid">Network Name</string>
-    <string name="hint_value">Enter Value</string>
-    <string name="hint_password">Password</string>
+    <string name="hint_pop">Prueba de Posesión</string>
+    <string name="hint_ssid">Nombre de Red</string>
+    <string name="hint_value">Ingresar Valor</string>
+    <string name="hint_password">Contraseña</string>
 
     <!-- Instruction Strings -->
-    <string name="pop_instruction">Enter your proof of possession PIN for</string>
-    <string name="setup_instructions">To complete setup of your device %1$s, please provide your Home Network\'s credentials.</string>
-    <string name="connect_device_instruction_general">To provision your device, make sure it is turned ON. Connect your mobile phone to the Wi-Fi network with a name like PROV_XXXXXX</string>
-    <string name="connect_device_instruction_specific">To provision your device, make sure it is turned ON. Connect your mobile phone to the Wi-Fi network with the name</string>
+    <string name="pop_instruction">Ingrese su PIN de prueba de posesión para</string>
+    <string name="setup_instructions">Para completar la configuración de su dispositivo %1$s, por favor proporcione las credenciales de su Red Doméstica.</string>
+    <string name="connect_device_instruction_general">Para aprovisionar su dispositivo, asegúrese de que esté encendido. Conecte su teléfono móvil a la red Wi-Fi con un nombre como PROV_XXXXXX</string>
+    <string name="connect_device_instruction_specific">Para aprovisionar su dispositivo, asegúrese de que esté encendido. Conecte su teléfono móvil a la red Wi-Fi con el nombre</string>
 
     <!-- Provisioning Steps Strings -->
-    <string name="prov_step_1">Sending Wi-Fi credentials</string>
-    <string name="prov_step_2">Applying Wi-Fi connection</string>
-    <string name="prov_step_3">Checking provisioning status</string>
-    <string name="error_session_creation">Failed to create session</string>
-    <string name="error_prov_step_1">Failed to send Wi-Fi credentials</string>
-    <string name="error_prov_step_2">Failed to apply Wi-Fi credentials</string>
-    <string name="error_prov_step_3">Failed to provisioning device</string>
-    <string name="error_prov_thread_step_1">Failed to send Thread credentials</string>
-    <string name="error_prov_thread_step_2">Failed to apply Thread credentials</string>
+    <string name="prov_step_1">Enviando credenciales Wi-Fi</string>
+    <string name="prov_step_2">Aplicando conexión Wi-Fi</string>
+    <string name="prov_step_3">Verificando estado de aprovisionamiento</string>
+    <string name="error_session_creation">Error al crear sesión</string>
+    <string name="error_prov_step_1">Error al enviar credenciales Wi-Fi</string>
+    <string name="error_prov_step_2">Error al aplicar credenciales Wi-Fi</string>
+    <string name="error_prov_step_3">Error al aprovisionar dispositivo</string>
+    <string name="error_prov_thread_step_1">Error al enviar credenciales Thread</string>
+    <string name="error_prov_thread_step_2">Error al aplicar credenciales Thread</string>
 
-    <string name="action_settings">Settings</string>
-    <string name="title_activity_provision_landing">Connect to device</string>
-    <string name="connected_to_device_instructions">You are now connected to the device. To provision the device, please enter your Network credentials on the next page.</string>
-    <string name="no_internet_note">To make sure you are really connected to the device, please make sure you accept the system dialog informing you that network has no internet access.</string>
-    <string name="connect_to_device_action">Connect</string>
-    <string name="connected_to_device_action">Provision Network</string>
-    <string name="title_activity_provision_instructions">Provision Instructions</string>
-    <string name="ssid_hint_text">Network Name</string>
-    <string name="password_hint_text">Password</string>
-    <string name="provision">Provision</string>
+    <string name="action_settings">Configuración</string>
+    <string name="title_activity_provision_landing">Conectar al dispositivo</string>
+    <string name="connected_to_device_instructions">Ahora está conectado al dispositivo. Para aprovisionar el dispositivo, por favor ingrese las credenciales de su Red en la siguiente página.</string>
+    <string name="no_internet_note">Para asegurarse de que realmente está conectado al dispositivo, por favor acepte el diálogo del sistema que le informa que la red no tiene acceso a internet.</string>
+    <string name="connect_to_device_action">Conectar</string>
+    <string name="connected_to_device_action">Aprovisionar Red</string>
+    <string name="title_activity_provision_instructions">Instrucciones de Aprovisionamiento</string>
+    <string name="ssid_hint_text">Nombre de Red</string>
+    <string name="password_hint_text">Contraseña</string>
+    <string name="provision">Aprovisionar</string>
 
-    <string name="success_text">Device has been successfully provisioned!</string>
-    <string name="wifi_disconnected_text">Please check the device indicators for provisioning status.</string>
-    <string name="done">Done</string>
+    <string name="success_text">¡El dispositivo ha sido aprovisionado con éxito!</string>
+    <string name="wifi_disconnected_text">Por favor, verifique los indicadores del dispositivo para el estado de aprovisionamiento.</string>
+    <string name="done">Hecho</string>
 
-    <string name="enable_bluetooth_instructions">To provision your new device, please make sure that your Phone\'s Bluetooth is turned on and within range of your new device.</string>
-    <string name="enabled_bluetooth_instructions">To provision the device, please enter your Network credentials on the next page.</string>
-    <string name="enable_bluetooth_action">Enable</string>
-    <string name="enabled_bluetooth_action">Provision Network</string>
+    <string name="enable_bluetooth_instructions">Para aprovisionar su nuevo dispositivo, asegúrese de que el Bluetooth de su teléfono esté encendido y dentro del alcance de su nuevo dispositivo.</string>
+    <string name="enabled_bluetooth_instructions">Para aprovisionar el dispositivo, por favor ingrese las credenciales de su Red en la siguiente página.</string>
+    <string name="enable_bluetooth_action">Habilitar</string>
+    <string name="enabled_bluetooth_action">Aprovisionar Red</string>
 
     <!-- Strings used for Progress -->
-    <string name="progress_scanning">Scanning Devices...</string>
-    <string name="progress_get_status">Getting Status</string>
-    <string name="progress_loading">Loading...</string>
-    <string name="progress_thread_networks">Searching thread\nnetworks...</string>
+    <string name="progress_scanning">Escaneando Dispositivos...</string>
+    <string name="progress_get_status">Obteniendo Estado</string>
+    <string name="progress_loading">Cargando...</string>
+    <string name="progress_thread_networks">Buscando redes\nThread...</string>
 
     <!--Error Messages-->
-    <string name="error_title">Error!</string>
-    <string name="error_ble_not_supported">Sorry! BLE is not supported.</string>
-    <string name="error_bluetooth_not_supported">Sorry! Bluetooth is not supported.</string>
-    <string name="error_device_not_supported">Communication failed. Device may not be supported.</string>
-    <string name="error_device_transport_not_supported">Device may not be supported.</string>
-    <string name="error_network_not_found">Network not found.</string>
-    <string name="error_authentication_failed">Wi-Fi Authentication failed.</string>
-    <string name="error_unknown">Device provisioning failed. Reason : Unknown.</string>
-    <string name="error_pop_incorrect">Please retry with correct proof of possession PIN.</string>
-    <string name="error_no_ble_device">No Bluetooth devices found!</string>
-    <string name="error_device_connect_failed">Failed to connect with device.</string>
-    <string name="error_ssid_empty">Network name cannot be empty</string>
-    <string name="error_password_empty">Password cannot be empty</string>
-    <string name="error_provisioning">Reset your board to factory defaults and retry</string>
-    <string name="error_wifi_off">Please turn on Wi-Fi to connect with device.</string>
-    <string name="error_security_mismatch">Security applied for communicating with device does not match configuration setting</string>
-    <string name="error_camera_permission">Camera permission is not given. App will not be able to scan QR code to add device.</string>
-    <string name="error_location_permission">Location permission is not given. It will be required to add BLE or SoftAP devices.</string>
-    <string name="error_no_preferred_creds">No thread network added</string>
-    <string name="error_read_preferred_creds_request_denied">You have denied request for reading thread credentials</string>
-    <string name="error_no_thread_network">No Active Thread Border Router</string>
-    <string name="error_dataset_invalid">Invalid Dataset</string>
-    <string name="error_nearby_devices_permission">Nearby devices permission is not granted. This is required to scan and connect to BLE devices.</string>
+    <string name="error_title">¡Error!</string>
+    <string name="error_ble_not_supported">¡Lo sentimos! BLE no es compatible.</string>
+    <string name="error_bluetooth_not_supported">¡Lo sentimos! Bluetooth no es compatible.</string>
+    <string name="error_device_not_supported">Falló la comunicación. Es posible que el dispositivo no sea compatible.</string>
+    <string name="error_device_transport_not_supported">Es posible que el dispositivo no sea compatible.</string>
+    <string name="error_network_not_found">Red no encontrada.</string>
+    <string name="error_authentication_failed">Falló la autenticación Wi-Fi.</string>
+    <string name="error_unknown">El aprovisionamiento del dispositivo falló. Motivo: Desconocido.</string>
+    <string name="error_pop_incorrect">Por favor, vuelva a intentarlo con el PIN de prueba de posesión correcto.</string>
+    <string name="error_no_ble_device">¡No se encontraron dispositivos Bluetooth!</string>
+    <string name="error_device_connect_failed">Error al conectar con el dispositivo.</string>
+    <string name="error_ssid_empty">El nombre de la red no puede estar vacío</string>
+    <string name="error_password_empty">La contraseña no puede estar vacía</string>
+    <string name="error_provisioning">Restablezca su placa a los valores de fábrica e inténtelo de nuevo</string>
+    <string name="error_wifi_off">Por favor, encienda el Wi-Fi para conectarse con el dispositivo.</string>
+    <string name="error_security_mismatch">La seguridad aplicada para comunicarse con el dispositivo no coincide con la configuración</string>
+    <string name="error_location_permission">No se ha dado permiso de ubicación. Será necesario para añadir dispositivos BLE o SoftAP.</string>
+    <string name="error_no_preferred_creds">No se ha añadido ninguna red thread</string>
+    <string name="error_read_preferred_creds_request_denied">Ha denegado la solicitud para leer credenciales thread</string>
+    <string name="error_no_thread_network">No hay Router Fronterizo Thread Activo</string>
+    <string name="error_dataset_invalid">Conjunto de datos inválido</string>
+    <string name="error_nearby_devices_permission">No se ha concedido permiso para dispositivos cercanos. Esto es necesario para escanear y conectarse a dispositivos BLE.</string>
 
-    <string name="prefix">Prefix :</string>
-    <string name="hint_prefix">Enter Prefix</string>
-    <string name="hint_key">Enter PIN</string>
-    <string name="devices_title">Devices</string>
-    <string name="enter_device_key">Enter Your Proof Of Possession PIN</string>
-    <string name="app_version">App Version</string>
-    <string name="powered_by_esp">Powered by ESPRESSIF</string>
+    <string name="prefix">Prefijo:</string>
+    <string name="hint_prefix">Ingresar Prefijo</string>
+    <string name="hint_key">Ingresar PIN</string>
+    <string name="devices_title">Dispositivos</string>
+    <string name="enter_device_key">Ingrese Su PIN de Prueba de Posesión</string>
+    <string name="app_version">Versión de la App</string>
+    <string name="powered_by_esp">Desarrollado por ESPRESSIF</string>
 
-    <string name="join_other_network">Join Other Network</string>
-    <string name="networks">Networks</string>
-    <string name="connect_your_device">Connect to your device</string>
+    <string name="join_other_network">Unirse a Otra Red</string>
+    <string name="networks">Redes</string>
+    <string name="connect_your_device">Conectar a su dispositivo</string>
 
-    <string name="dialog_msg_gps">Location services are disabled. Please enable them to continue</string>
-    <string name="dialog_msg_device_selection">Select Device Type</string>
-    <string name="looking_for_qr_code">Looking for QR Code</string>
-    <string name="position_camera_for_qr_code">Please position the camera to point at the QR Code.</string>
-    <string name="dialog_title_network_info">Enter Network Information</string>
-    <string name="dialog_msg_ble_device_disconnection">Device disconnected</string>
+    <string name="dialog_msg_gps">Los servicios de ubicación están desactivados. Por favor, actívelos para continuar</string>
+    <string name="dialog_msg_device_selection">Seleccionar Tipo de Dispositivo</string>
+    <string name="dialog_title_network_info">Ingresar Información de Red</string>
+    <string name="dialog_msg_ble_device_disconnection">Dispositivo desconectado</string>
 
     <!-- Preference Titles -->
-    <string name="device_settings">Device Settings</string>
+    <string name="device_settings">Configuración del Dispositivo</string>
 
     <!-- Messages Preferences -->
-    <string name="device_selection_title">Supported Device Types</string>
-    <string name="security_selection_title">Encrypted Communication</string>
-    <string name="username_wifi_pref_title">Sec2 Username for Wi-Fi</string>
-    <string name="username_thread_pref_title">Sec2 Username for Thread</string>
-    <string name="username_selection_title">Username</string>
-    <string name="summary_secured">Secured</string>
-    <string name="summary_unsecured">Unsecured</string>
-    <string name="summary_username">(Applicable for security version 2)</string>
+    <string name="device_selection_title">Tipos de Dispositivos Compatibles</string>
+    <string name="security_selection_title">Comunicación Encriptada</string>
+    <string name="username_wifi_pref_title">Nombre de Usuario Sec2 para Wi-Fi</string>
+    <string name="username_thread_pref_title">Nombre de Usuario Sec2 para Thread</string>
+    <string name="username_selection_title">Nombre de Usuario</string>
+    <string name="summary_secured">Seguro</string>
+    <string name="summary_unsecured">No Seguro</string>
+    <string name="summary_username">(Aplicable para la versión de seguridad 2)</string>
 
     <!--Dialog texts-->
-    <string name="dialog_title_camera_permission">Camera Permission Needed</string>
-    <string name="dialog_msg_camera_permission_use">This app requires access to your camera to scan QR code.</string>
-    <string name="dialog_title_location_permission">Location Permission Needed</string>
-    <string name="dialog_msg_location_permission_use">It is required to connect nearby Bluetooth devices.</string>
-    <string name="dialog_title_nearby_devices_permission">Nearby Devices Permission</string>
-    <string name="dialog_msg_nearby_devices_permission_use">Nearby Devices permission is required for scanning and connecting to BLE devices. Please grant it in Settings.</string>
+    <string name="dialog_title_camera_permission">Se Necesita Permiso de Cámara</string>
+    <string name="dialog_title_location_permission">Se Necesita Permiso de Ubicación</string>
+    <string name="dialog_msg_location_permission_use">Es necesario para conectar dispositivos Bluetooth cercanos.</string>
+    <string name="dialog_title_nearby_devices_permission">Permiso de Dispositivos Cercanos</string>
+    <string name="dialog_msg_nearby_devices_permission_use">El permiso de Dispositivos Cercanos es necesario para escanear y conectarse a dispositivos BLE. Por favor, concédalo en Configuración.</string>
 
 </resources>
