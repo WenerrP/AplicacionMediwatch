@@ -140,5 +140,14 @@
     <string name="dialog_msg_location_permission_use">Es necesario para conectar dispositivos Bluetooth cercanos.</string>
     <string name="dialog_title_nearby_devices_permission">Permiso de Dispositivos Cercanos</string>
     <string name="dialog_msg_nearby_devices_permission_use">El permiso de Dispositivos Cercanos es necesario para escanear y conectarse a dispositivos BLE. Por favor, concédalo en Configuración.</string>
+    <string name="mqttName">MediWatch MQTT</string>
+    <string name="estado_mqtt">Estado: Desconectado</string>
+    <string name="datos_recibidos">Datos recibidos:</string>
+    <string name="esperando_datos">Esperando datos...</string>
+    <string name="enviar_comando">Enviar comando:</string>
+    <string name="escribe_tu_mensaje">Escribe tu mensaje</string>
+    <string name="enviar">Enviar</string>
+    <string name="Topicos">Tópico de suscripción: mediwatch/data\nTópico de publicación: mediwatch/control</string>
+    <string name="retry">Volver a Provisioning</string>
 
 </resources>
