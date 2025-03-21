@@ -49,6 +49,9 @@ import com.espressif.wifi_provisioning.R;
 public class EspMainActivity extends AppCompatActivity {
 
     private static final String TAG = EspMainActivity.class.getSimpleName();
+    private static final String PREF_NAME = "EspProvisioningPrefs";
+    private static final String KEY_IS_PROVISIONED = "isProvisioned";
+    private static final String KEY_DEVICE_ID = "deviceId";
 
     // Request codes
     private static final int REQUEST_LOCATION = 1;
@@ -56,18 +59,19 @@ public class EspMainActivity extends AppCompatActivity {
 
     private ESPProvisionManager provisionManager;
     private CardView btnAddDevice;
-    private CardView btnMqttDashboard; // Nuevo botón para MQTT Dashboard
     private ImageView ivEsp;
     private SharedPreferences sharedPreferences;
     private String deviceType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_esp_main);
+        
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        getSupportActionBar().setTitle(R.string.provisioning_title);
+        
         initViews();
 
         sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
@@ -150,17 +154,6 @@ public class EspMainActivity extends AppCompatActivity {
         btnAddDevice.findViewById(R.id.iv_arrow).setVisibility(View.GONE);
         btnAddDevice.setOnClickListener(addDeviceBtnClickListener);
 
-        // Inicializar el botón de MQTT Dashboard
-        btnMqttDashboard = findViewById(R.id.btn_mqtt_dashboard);
-        if (btnMqttDashboard != null) {
-            btnMqttDashboard.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    openMqttDashboard();
-                }
-            });
-        }
-
         TextView tvAppVersion = findViewById(R.id.tv_app_version);
 
         String version = "";
@@ -174,11 +167,15 @@ public class EspMainActivity extends AppCompatActivity {
         tvAppVersion.setText(appVersion);
     }
 
-    // Método para abrir el dashboard MQTT
-    private void openMqttDashboard() {
+    // Reemplazar con este método unificado
+    private void openMqttDashboard(String deviceId) {
         Intent intent = new Intent(EspMainActivity.this, MqttActivity.class);
-        // Si tienes un dispositivo específico seleccionado, puedes pasar su ID
-        // intent.putExtra("DEVICE_ID", deviceId);
+        
+        // Pasar el ID del dispositivo si se proporciona
+        if (deviceId != null && !deviceId.isEmpty()) {
+            intent.putExtra("DEVICE_ID", deviceId);
+        }
+        
         startActivity(intent);
     }
 
@@ -354,5 +351,19 @@ public class EspMainActivity extends AppCompatActivity {
         Intent intent = new Intent(EspMainActivity.this, ProvisionLanding.class);
         intent.putExtra(AppConstants.KEY_SECURITY_TYPE, securityType);
         startActivity(intent);
+    }
+
+    // Este método se llamaría cuando el provisioning se completa exitosamente
+    // Puedes llamarlo desde la actividad de provisioning mediante un intent o un evento
+    public void onProvisioningComplete(String deviceId) {
+        // Guardar el estado de provisioning
+        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean(KEY_IS_PROVISIONED, true);
+        editor.putString(KEY_DEVICE_ID, deviceId);
+        editor.apply();
+
+        // Abrir el MQTT Dashboard
+        openMqttDashboard(deviceId);
     }
 }

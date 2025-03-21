@@ -28,49 +28,10 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/margin_32"
         android:layout_marginEnd="@dimen/margin_32"
-        android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@id/btn_mqtt_dashboard"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Botón MQTT Dashboard debajo del botón provisioning -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/btn_mqtt_dashboard"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/margin_32"
-        android:layout_marginEnd="@dimen/margin_32"
-        android:layout_marginBottom="16dp"
-        android:foreground="?attr/selectableItemBackground"
-        app:cardCornerRadius="4dp"
-        app:cardElevation="4dp"
+        android:layout_marginBottom="32dp"
         app:layout_constraintBottom_toTopOf="@id/ll_version"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:padding="16dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:contentDescription="@string/mqtt_dashboard"
-                android:src="@drawable/ic_mqtt" />
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_weight="1"
-                android:text="@string/mqtt_dashboard"
-                android:textSize="16sp" />
-
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- Información de versión y autores en el fondo -->
     <LinearLayout

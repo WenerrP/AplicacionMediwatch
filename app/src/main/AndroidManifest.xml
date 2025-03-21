@@ -29,18 +29,10 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         
-        <!-- Actividad MQTT con tema sin ActionBar -->
+        <!-- Nueva actividad Splash como LAUNCHER -->
         <activity
-            android:name="com.espressif.ui.activities.MqttActivity"
-            android:exported="false" 
-            android:theme="@style/AppTheme.NoActionBar" />
-            
-        <activity
-            android:name="com.espressif.ui.activities.EspMainActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:name="com.espressif.ui.activities.SplashActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,6 +40,20 @@
             </intent-filter>
         </activity>
         
+        <!-- Actividad MQTT con tema sin ActionBar -->
+        <activity
+            android:name="com.espressif.ui.activities.MqttActivity"
+            android:exported="false" 
+            android:launchMode="singleTask"
+            android:theme="@style/AppTheme.NoActionBar" />
+            
+        <!-- Actividad ESP Main ya no es LAUNCHER -->
+        <activity
+            android:name="com.espressif.ui.activities.EspMainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
+            android:exported="false"
+            android:theme="@style/AppTheme.NoActionBar" />
+            
         <activity
             android:name="com.espressif.ui.activities.BLEProvisionLanding"
             android:label="@string/title_activity_connect_device"

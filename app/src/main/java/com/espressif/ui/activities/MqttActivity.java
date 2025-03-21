@@ -20,6 +20,10 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import android.content.Intent;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.content.SharedPreferences;
+import androidx.appcompat.app.AlertDialog;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.espressif.wifi_provisioning.R;
 
@@ -62,15 +66,6 @@ public class MqttActivity extends AppCompatActivity {
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             getSupportActionBar().setTitle("MediWatch MQTT");
-        }
-        
-        // Obtener deviceId del intent si está disponible
-        if (getIntent().hasExtra("DEVICE_ID")) {
-            String deviceId = getIntent().getStringExtra("DEVICE_ID");
-            // Personalizar los tópicos con el ID del dispositivo
-            TOPIC_SUBSCRIBE = "mediwatch/" + deviceId + "/data";
-            TOPIC_PUBLISH = "mediwatch/" + deviceId + "/control";
-            TOPIC_HEARTBEAT = "mediwatch/" + deviceId + "/heartbeat";
         }
 
         // Inicializar vistas
@@ -464,5 +459,55 @@ public class MqttActivity extends AppCompatActivity {
         } catch (MqttException e) {
             Log.e(TAG, "Error al desconectar MQTT", e);
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_mqtt, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        
+        if (id == R.id.action_reset_provisioning) {
+            // Mostrar diálogo de confirmación
+            new AlertDialog.Builder(this)
+                .setTitle("Resetear provisioning")
+                .setMessage("¿Estás seguro que deseas resetear el provisioning? Esto te permitirá aprovisionar un nuevo dispositivo.")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    // Limpiar el estado de provisioning
+                    SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean("isProvisioned", false);
+                    editor.putString("deviceId", "");
+                    editor.apply();
+                    
+                    // Volver a la pantalla principal
+                    Intent intent = new Intent(this, EspMainActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("No", null)
+                .show();
+            return true;
+        } else if (id == R.id.action_refresh) {
+            // Refrescar la conexión MQTT
+            Toast.makeText(this, "Refrescando conexión...", Toast.LENGTH_SHORT).show();
+            reconnectToMqttBroker();
+            return true;
+        }
+        
+        return super.onOptionsItemSelected(item);
+    }
+
+    // Solo para Android 13+ (API 33+)
+    @Override
+    public void onBackPressed() {
+        // No hacer nada - deshabilita el botón atrás
+        // NO LLAMAR a super.onBackPressed() para desactivar completamente el botón
+        super.onBackPressed();
     }
 }

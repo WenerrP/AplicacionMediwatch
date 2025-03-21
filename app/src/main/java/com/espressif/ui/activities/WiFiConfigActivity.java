@@ -16,6 +16,7 @@ package com.espressif.ui.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -165,5 +166,30 @@ public class WiFiConfigActivity extends AppCompatActivity {
         });
 
         builder.show();
+    }
+
+    // Método que maneja el éxito de la conexión WiFi
+    private void onWifiConnectSuccess() {
+        // Código existente
+        
+        // Al final, agregar:
+        // Obtener el deviceId
+        String deviceId = provisionManager.getEspDevice().getDeviceName();
+        
+        // Guardar el estado de provisioning
+        SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("isProvisioned", true);
+        editor.putString("deviceId", deviceId);
+        editor.apply();
+        
+        // Ir al MQTT Dashboard directamente, saltándose EspMainActivity
+        Intent intent = new Intent(this, MqttActivity.class);
+        intent.putExtra("DEVICE_ID", deviceId);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        
+        // Finalizar esta actividad
+        finish();
     }
 }

@@ -16,12 +16,14 @@ package com.espressif.ui.activities;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -276,6 +278,7 @@ public class ProvisionActivity extends AppCompatActivity {
                             tick3.setVisibility(View.VISIBLE);
                             progress3.setVisibility(View.GONE);
                             hideLoading();
+                            onProvisioningSuccess(provisionManager.getEspDevice().getDeviceName());
                         }
                     });
                 }
@@ -428,6 +431,7 @@ public class ProvisionActivity extends AppCompatActivity {
                             tick3.setVisibility(View.VISIBLE);
                             progress3.setVisibility(View.GONE);
                             hideLoading();
+                            onProvisioningSuccess(provisionManager.getEspDevice().getDeviceName());
                         }
                     });
                 }
@@ -483,5 +487,23 @@ public class ProvisionActivity extends AppCompatActivity {
         });
 
         builder.show();
+    }
+
+    // Este método se llama cuando el provisioning se completa exitosamente
+    private void onProvisioningSuccess(String deviceId) {
+        // Guardar el estado de provisioning
+        SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("isProvisioned", true);
+        editor.putString("deviceId", deviceId);
+        editor.apply();
+        
+        // Abrir el MQTT Dashboard y limpiar la pila de actividades
+        Intent intent = new Intent(this, MqttActivity.class);
+        intent.putExtra("DEVICE_ID", deviceId);
+        // Estos flags evitan que el usuario regrese a pantallas anteriores con el botón Atrás
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
     }
 }

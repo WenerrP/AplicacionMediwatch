@@ -110,7 +110,7 @@
     <string name="devices_title">Dispositivos</string>
     <string name="enter_device_key">Ingrese Su PIN de Prueba de Posesión</string>
     <string name="app_version">Versión de la App</string>
-    <string name="powered_by_esp">Desarrollado por ESPRESSIF</string>
+    <string name="powered_by_esp">Desarrollado por MediWatch</string>
 
     <string name="join_other_network">Unirse a Otra Red</string>
     <string name="networks">Redes</string>
@@ -151,5 +151,6 @@
     <string name="enviar">Enviar</string>
     <string name="Topicos">Información de tópicos MQTT</string>
     <string name="retry">Volver a Provisioning</string>
+    <string name="provisioning_title">Provisioning ESP</string>
 
 </resources>
