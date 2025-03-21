@@ -56,6 +56,7 @@ public class EspMainActivity extends AppCompatActivity {
 
     private ESPProvisionManager provisionManager;
     private CardView btnAddDevice;
+    private CardView btnMqttDashboard; // Nuevo botón para MQTT Dashboard
     private ImageView ivEsp;
     private SharedPreferences sharedPreferences;
     private String deviceType;
@@ -149,6 +150,17 @@ public class EspMainActivity extends AppCompatActivity {
         btnAddDevice.findViewById(R.id.iv_arrow).setVisibility(View.GONE);
         btnAddDevice.setOnClickListener(addDeviceBtnClickListener);
 
+        // Inicializar el botón de MQTT Dashboard
+        btnMqttDashboard = findViewById(R.id.btn_mqtt_dashboard);
+        if (btnMqttDashboard != null) {
+            btnMqttDashboard.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    openMqttDashboard();
+                }
+            });
+        }
+
         TextView tvAppVersion = findViewById(R.id.tv_app_version);
 
         String version = "";
@@ -160,6 +172,14 @@ public class EspMainActivity extends AppCompatActivity {
         }
         String appVersion = getString(R.string.app_version) + " - v" + version;
         tvAppVersion.setText(appVersion);
+    }
+
+    // Método para abrir el dashboard MQTT
+    private void openMqttDashboard() {
+        Intent intent = new Intent(EspMainActivity.this, MqttActivity.class);
+        // Si tienes un dispositivo específico seleccionado, puedes pasar su ID
+        // intent.putExtra("DEVICE_ID", deviceId);
+        startActivity(intent);
     }
 
     View.OnClickListener addDeviceBtnClickListener = new View.OnClickListener() {
