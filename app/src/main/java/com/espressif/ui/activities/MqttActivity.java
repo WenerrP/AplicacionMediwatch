@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
@@ -53,6 +54,16 @@ public class MqttActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mqtt);
 
+        // Establecer título personalizado en la barra de acción
+        setTitle("MediWatch MQTT");
+        
+        // Si se está utilizando Toolbar en lugar de ActionBar
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+            getSupportActionBar().setTitle("MediWatch MQTT");
+        }
+        
         // Obtener deviceId del intent si está disponible
         if (getIntent().hasExtra("DEVICE_ID")) {
             String deviceId = getIntent().getStringExtra("DEVICE_ID");

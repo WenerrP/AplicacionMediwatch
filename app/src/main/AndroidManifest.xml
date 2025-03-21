@@ -12,7 +12,8 @@
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> <!-- Request legacy Bluetooth permissions on older devices. -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> 
+    <!-- Request legacy Bluetooth permissions on older devices. -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
@@ -28,10 +29,11 @@
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
         
-        <!-- Declaración correcta de MqttActivity -->
+        <!-- Actividad MQTT con tema sin ActionBar -->
         <activity
             android:name="com.espressif.ui.activities.MqttActivity"
-            android:exported="false" />
+            android:exported="false" 
+            android:theme="@style/AppTheme.NoActionBar" />
             
         <activity
             android:name="com.espressif.ui.activities.EspMainActivity"
@@ -42,49 +44,57 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        
         <activity
             android:name="com.espressif.ui.activities.BLEProvisionLanding"
             android:label="@string/title_activity_connect_device"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+            
         <activity
             android:name="com.espressif.ui.activities.WiFiConfigActivity"
             android:label="@string/title_activity_wifi_config"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+            
         <activity
             android:name="com.espressif.ui.activities.ProvisionLanding"
             android:label="@string/title_activity_provision_landing"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+            
         <activity
             android:name="com.espressif.ui.activities.ProvisionActivity"
             android:label="@string/title_activity_provisioning"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+            
         <activity
             android:name="com.espressif.ui.activities.SettingsActivity"
             android:label="@string/title_activity_settings"
             android:screenOrientation="portrait" />
+            
         <activity
             android:name="com.espressif.ui.activities.WiFiScanActivity"
             android:label="@string/title_activity_wifi_scan_list"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+            
         <activity
             android:name="com.espressif.ui.activities.ThreadConfigActivity"
             android:label="@string/title_activity_wifi_scan_list"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+            
         <activity
             android:name="com.espressif.ui.activities.ProofOfPossessionActivity"
             android:label="@string/title_activity_pop"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+            
     </application>
 
 </manifest>

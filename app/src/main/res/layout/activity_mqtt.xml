@@ -7,7 +7,7 @@
     android:background="@color/colorBackground"
     tools:context=".ui.activities.MqttActivity">
 
-    <!-- App Bar con título y opciones -->
+    <!-- App Bar solo con MediWatch MQTT -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -20,7 +20,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title="@string/mqttName"
+            app:title="MediWatch MQTT"
             app:titleTextColor="@android:color/white" />
 
     </com.google.android.material.appbar.AppBarLayout>
