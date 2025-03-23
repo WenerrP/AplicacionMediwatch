@@ -76,6 +76,24 @@ public class EspMainActivity extends AppCompatActivity {
 
         sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
         provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
+        
+        // Verificar si ya existe un dispositivo aprovisionado
+        SharedPreferences provPrefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        boolean isProvisioned = provPrefs.getBoolean(KEY_IS_PROVISIONED, false);
+        String deviceId = provPrefs.getString(KEY_DEVICE_ID, "");
+        
+        // Solo si está aprovisionado y hay un ID de dispositivo, ir al dashboard
+        if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
+            Log.d(TAG, "Dispositivo ya aprovisionado. ID: " + deviceId);
+            openMqttDashboard(deviceId);
+        } else {
+            Log.d(TAG, "No hay dispositivo aprovisionado. Mostrando pantalla de aprovisionamiento.");
+            // Limpiar para asegurar que no hay datos previos incorrectos
+            SharedPreferences.Editor editor = provPrefs.edit();
+            editor.putBoolean(KEY_IS_PROVISIONED, false);
+            editor.putString(KEY_DEVICE_ID, "");
+            editor.apply();
+        }
     }
 
     @Override
@@ -353,16 +371,23 @@ public class EspMainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    // Este método se llamaría cuando el provisioning se completa exitosamente
-    // Puedes llamarlo desde la actividad de provisioning mediante un intent o un evento
+    // Método para ser llamado cuando el aprovisionamiento se completa
     public void onProvisioningComplete(String deviceId) {
-        // Guardar el estado de provisioning
+        if (deviceId == null || deviceId.isEmpty()) {
+            Log.e(TAG, "Error: ID de dispositivo vacío después del aprovisionamiento");
+            Toast.makeText(this, "Error: No se recibió ID de dispositivo", Toast.LENGTH_LONG).show();
+            return;
+        }
+        
+        // Guardar el estado de aprovisionamiento
         SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(KEY_IS_PROVISIONED, true);
         editor.putString(KEY_DEVICE_ID, deviceId);
         editor.apply();
-
+        
+        Log.d(TAG, "Aprovisionamiento completado exitosamente. ID: " + deviceId);
+        
         // Abrir el MQTT Dashboard
         openMqttDashboard(deviceId);
     }

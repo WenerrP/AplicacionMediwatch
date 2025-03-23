@@ -20,21 +20,21 @@
     <string name="btn_next">Siguiente</string>
     <string name="btn_back">Atrás</string>
     <string name="btn_provision">Aprovisionar</string>
-    <string name="btn_provision_device">Aprovisionar Nuevo Dispositivo</string>
+    <string name="btn_provision_device">Aprovisionar nuevo dispositivo</string>
     <string name="btn_connect">Conectar</string>
     <string name="btn_connecting">Conectando&#8230;</string>
-    <string name="btn_wifi_settings">Ir a Configuración Wi-Fi</string>
-    <string name="btn_scan_again">Escanear de Nuevo</string>
+    <string name="btn_wifi_settings">Ir a configuración Wi-Fi</string>
+    <string name="btn_scan_again">Escanear de nuevo</string>
     <string name="btn_save">Guardar</string>
     <string name="btn_change_prefix">Cambiar</string>
     <string name="btn_yes">Sí</string>
-    <string name="btn_get_permission">Obtener Permiso</string>
-    <string name="btn_try_again">Intentar de Nuevo</string>
+    <string name="btn_get_permission">Obtener permiso</string>
+    <string name="btn_try_again">Intentar de nuevo</string>
 
     <!-- Hint Text -->
-    <string name="hint_pop">Prueba de Posesión</string>
-    <string name="hint_ssid">Nombre de Red</string>
-    <string name="hint_value">Ingresar Valor</string>
+    <string name="hint_pop">Prueba de posesión</string>
+    <string name="hint_ssid">Nombre de red</string>
+    <string name="hint_value">Ingresar valor</string>
     <string name="hint_password">Contraseña</string>
 
     <!-- Instruction Strings -->
@@ -61,7 +61,7 @@
     <string name="connect_to_device_action">Conectar</string>
     <string name="connected_to_device_action">Aprovisionar Red</string>
     <string name="title_activity_provision_instructions">Instrucciones de Aprovisionamiento</string>
-    <string name="ssid_hint_text">Nombre de Red</string>
+    <string name="ssid_hint_text">Nombre de red</string>
     <string name="password_hint_text">Contraseña</string>
     <string name="provision">Aprovisionar</string>
 
@@ -151,6 +151,6 @@
     <string name="enviar">Enviar</string>
     <string name="Topicos">Información de tópicos MQTT</string>
     <string name="retry">Volver a Provisioning</string>
-    <string name="provisioning_title">Provisioning ESP</string>
+    <string name="provisioning_title">Aprovisionamiento ESP</string>
 
 </resources>

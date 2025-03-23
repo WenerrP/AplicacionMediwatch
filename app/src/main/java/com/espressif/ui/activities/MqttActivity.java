@@ -58,6 +58,38 @@ public class MqttActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_mqtt);
 
+        // Comprobar si tenemos un ID de dispositivo
+        String deviceId = null;
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("DEVICE_ID")) {
+            deviceId = intent.getStringExtra("DEVICE_ID");
+            Log.d(TAG, "ID de dispositivo recibido: " + deviceId);
+        } 
+        else {
+            // Verificar si hay un dispositivo almacenado en preferencias
+            SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
+            boolean isProvisioned = prefs.getBoolean("isProvisioned", false);
+            deviceId = prefs.getString("deviceId", "");
+            
+            if (!isProvisioned || deviceId == null || deviceId.isEmpty()) {
+                Log.e(TAG, "Error: MqttActivity iniciada sin aprovisionamiento previo");
+                Toast.makeText(this, "Error: No hay dispositivo aprovisionado", Toast.LENGTH_LONG).show();
+                
+                // Forzar limpieza de estado para asegurar aprovisionamiento
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putBoolean("isProvisioned", false);
+                editor.putString("deviceId", "");
+                editor.apply();
+                
+                // Volver a la actividad de aprovisionamiento
+                Intent mainIntent = new Intent(this, EspMainActivity.class);
+                mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(mainIntent);
+                finish();
+                return;
+            }
+        }
+
         // Establecer título personalizado en la barra de acción
         setTitle("MediWatch MQTT");
         
@@ -146,8 +178,6 @@ public class MqttActivity extends AppCompatActivity {
             publishMessage(TOPIC_PUBLISH, jsonCommand.toString());
             Log.d(TAG, "Comando LED enviado: " + jsonCommand.toString());
             
-            // Considerar esto como una interacción válida para reiniciar el heartbeat
-            resetHeartbeatTimer();
         } catch (JSONException e) {
             Log.e(TAG, "Error al crear comando JSON para LED", e);
             Toast.makeText(this, "Error al enviar comando", Toast.LENGTH_SHORT).show();
@@ -210,12 +240,6 @@ public class MqttActivity extends AppCompatActivity {
     private void resetHeartbeatTimer() {
         heartbeatHandler.removeCallbacks(heartbeatRunnable);
         lastMessageTimestamp = System.currentTimeMillis();
-        
-        // Si estaba desconectado, asumimos reconexión inmediata
-        if (!deviceConnected) {
-            Log.d(TAG, "Actividad detectada después de desconexión, verificando reconexión");
-            updateConnectionStatus(true);
-        }
         
         // Programar la próxima verificación
         heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_TIMEOUT);
@@ -320,8 +344,11 @@ public class MqttActivity extends AppCompatActivity {
                     final String receivedMsg = new String(message.getPayload());
                     Log.d(TAG, "Mensaje recibido en " + topic + ": " + receivedMsg);
                     
-                    // Cualquier mensaje recibido reinicia el temporizador y confirma conexión
-                    resetHeartbeatTimer();
+                    // Reiniciar el temporizador cuando recibimos un mensaje
+                    // pero SIN cambiar el estado de conexión aquí directamente
+                    heartbeatHandler.removeCallbacks(heartbeatRunnable);
+                    lastMessageTimestamp = System.currentTimeMillis();
+                    heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_TIMEOUT);
                     
                     // Procesar el mensaje recibido
                     try {
@@ -332,6 +359,7 @@ public class MqttActivity extends AppCompatActivity {
                         
                         // Detección explícita de estado
                         if (topic.equals(TOPIC_HEARTBEAT) || topic.equals(TOPIC_SUBSCRIBE)) {
+                            // Aquí SÍ actualizamos el estado, ya que es un mensaje recibido del ESP32
                             if (jsonMessage.has("status")) {
                                 String status = jsonMessage.getString("status");
                                 if ("online".equals(status)) {
@@ -345,7 +373,7 @@ public class MqttActivity extends AppCompatActivity {
                                 }
                             } else {
                                 // Cualquier mensaje en estos topics indica que el dispositivo 
-                                // está funcionando - interpretar como señal de vida
+                                // está funcionando - aquí SÍ es correcto actualizar el estado
                                 updateConnectionStatus(true);
                             }
                         }
@@ -358,6 +386,7 @@ public class MqttActivity extends AppCompatActivity {
                     } catch (JSONException e) {
                         Log.e(TAG, "Error al procesar JSON recibido", e);
                         // A pesar del error, consideramos que el dispositivo está activo
+                        // porque recibimos algo de él
                         updateConnectionStatus(true);
                     }
                 }
@@ -435,8 +464,6 @@ public class MqttActivity extends AppCompatActivity {
                 mqttClient.publish(topic, message);
                 Log.d(TAG, "Mensaje publicado en " + topic + ": " + payload);
                 
-                // Al enviar un mensaje, consideramos que hay actividad - reset del timer
-                resetHeartbeatTimer();
             } else {
                 Log.e(TAG, "Intento de publicar mensaje sin conexión MQTT");
                 Toast.makeText(this, "No hay conexión MQTT. Reconectando...", Toast.LENGTH_SHORT).show();
