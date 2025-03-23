@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Permisos -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -13,7 +15,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" /> 
-    <!-- Request legacy Bluetooth permissions on older devices. -->
+    
+    <!-- Legacy Bluetooth permissions -->
     <uses-permission
         android:name="android.permission.BLUETOOTH"
         android:maxSdkVersion="30" />
@@ -24,14 +27,17 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        android:usesCleartextTraffic="true">
+        android:usesCleartextTraffic="true"
+        tools:targetApi="31">
         
-        <!-- Nueva actividad Splash como LAUNCHER -->
+        <!-- Actividad principal (Launcher) -->
         <activity
-            android:name="com.espressif.ui.activities.SplashActivity"
+            android:name="com.espressif.ui.activities.EspMainActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
             android:exported="true"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -40,65 +46,51 @@
             </intent-filter>
         </activity>
         
-        <!-- Actividad MQTT con tema sin ActionBar -->
+        <!-- Actividad MQTT -->
         <activity
             android:name="com.espressif.ui.activities.MqttActivity"
             android:exported="false" 
             android:launchMode="singleTask"
             android:theme="@style/AppTheme.NoActionBar" />
-            
-        <!-- Actividad ESP Main ya no es LAUNCHER -->
-        <activity
-            android:name="com.espressif.ui.activities.EspMainActivity"
-            android:configChanges="keyboard|keyboardHidden|orientation|screenSize"
-            android:exported="false"
-            android:theme="@style/AppTheme.NoActionBar" />
-            
+
+        <!-- Otras actividades -->
         <activity
             android:name="com.espressif.ui.activities.BLEProvisionLanding"
             android:label="@string/title_activity_connect_device"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
             
         <activity
             android:name="com.espressif.ui.activities.WiFiConfigActivity"
             android:label="@string/title_activity_wifi_config"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
             
         <activity
             android:name="com.espressif.ui.activities.ProvisionLanding"
             android:label="@string/title_activity_provision_landing"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
             
         <activity
             android:name="com.espressif.ui.activities.ProvisionActivity"
             android:label="@string/title_activity_provisioning"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
             
         <activity
             android:name="com.espressif.ui.activities.SettingsActivity"
-            android:label="@string/title_activity_settings"
-            android:screenOrientation="portrait" />
+            android:label="@string/title_activity_settings" />
             
         <activity
             android:name="com.espressif.ui.activities.WiFiScanActivity"
             android:label="@string/title_activity_wifi_scan_list"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
             
         <activity
             android:name="com.espressif.ui.activities.ThreadConfigActivity"
-            android:label="@string/title_activity_wifi_scan_list"
-            android:screenOrientation="portrait"
+            android:label="@string/title_activity_thread_config"
             android:theme="@style/AppTheme.NoActionBar" />
             
         <activity
             android:name="com.espressif.ui.activities.ProofOfPossessionActivity"
             android:label="@string/title_activity_pop"
-            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
             
     </application>

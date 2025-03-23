@@ -1,23 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- Colores base existentes -->
-    <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryDark">#1976D2</color>
-    <color name="colorAccent">#FF5722</color>
+    <!-- Colores base de la app -->
+    <color name="colorPrimary">#007AFF</color>
+    <color name="colorPrimaryDark">#0062CC</color>
+    <color name="colorAccent">#FF9500</color>
     
-    <!-- Nuevos colores para el MQTT Dashboard -->
-    <color name="colorBackground">#F5F5F5</color>
+    <!-- Colores adicionales -->
+    <color name="colorGreen">#34C759</color>
+    <color name="colorRed">#FF3B30</color>
+    <color name="colorOrange">#FF9500</color>
+    <color name="colorSendButton">#28CD41</color>
+    
+    <!-- Fondos y tarjetas -->
+    <color name="colorBackground">#F2F2F7</color>
     <color name="cardBackground">#FFFFFF</color>
-    <color name="colorDivider">#E0E0E0</color>
-    <color name="textPrimary">#212121</color>
-    <color name="textSecondary">#757575</color>
+    <color name="colorDivider">#E5E5EA</color>
+    
+    <!-- Colores de texto -->
+    <color name="colorText">#000000</color>
+    <color name="colorTextSecondary">#8E8E93</color>
+    <color name="textPrimary">#000000</color>
+    <color name="textSecondary">#8E8E93</color>
     
     <!-- Colores para los botones de LEDs -->
     <color name="colorButtonA">#4CAF50</color>
     <color name="colorButtonB">#9C27B0</color>
     <color name="colorButtonC">#FF9800</color>
-    <color name="colorSendButton">#3F51B5</color>
 
     <color name="color_text">#1a1a1a</color>
     <color name="color_orange">#ff5207</color>

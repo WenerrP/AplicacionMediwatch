@@ -7,21 +7,22 @@
     android:background="@color/colorBackground"
     tools:context=".ui.activities.MqttActivity">
 
-    <!-- App Bar solo con MediWatch MQTT -->
+    <!-- App Bar con diseño moderno -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
+        android:background="@color/colorBackground"
+        app:elevation="0dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"
-            app:title="MediWatch MQTT"
-            app:titleTextColor="@android:color/white" />
+            android:background="@color/colorBackground"
+            app:title="MediWatch"
+            app:titleTextColor="@color/colorText"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -38,41 +39,51 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Estado de conexión con indicador visual -->
-            <androidx.cardview.widget.CardView
+            <!-- Estado de conexión con indicador visual moderno -->
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardViewStatus"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="6dp"
-                app:cardBackgroundColor="@color/cardBackground">
+                style="@style/ModernCard">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="16dp">
-
-                    <View
-                        android:id="@+id/connectionIndicator"
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:background="@drawable/circle_indicator_red" />
+                    android:orientation="vertical">
 
                     <TextView
-                        android:id="@+id/textViewConnectionStatus"
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="16dp"
-                        android:layout_weight="1"
-                        android:text="@string/estado_mqtt"
-                        android:textSize="16sp"
-                        android:textColor="#FF0000"
-                        android:textStyle="bold" />
+                        android:text="Estado del Dispositivo"
+                        android:textColor="@color/colorText"
+                        android:textSize="18sp"
+                        android:textStyle="bold"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="12dp">
+
+                        <View
+                            android:id="@+id/connectionIndicator"
+                            android:layout_width="16dp"
+                            android:layout_height="16dp"
+                            android:background="@drawable/circle_indicator_green"/>
+
+                        <TextView
+                            android:id="@+id/textViewConnectionStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
+                            android:text="Desconectado"
+                            android:textSize="16sp"
+                            android:textColor="@color/colorRed"/>
+                    </LinearLayout>
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Card para datos recibidos -->
             <androidx.cardview.widget.CardView
@@ -91,12 +102,13 @@
                     android:padding="16dp">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/datos_recibidos"
+                        android:text="Datos Recibidos"
+                        android:textColor="@color/colorText"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/colorAccent" />
+                        android:layout_marginBottom="8dp"/>
 
                     <View
                         android:layout_width="match_parent"
@@ -107,17 +119,17 @@
 
                     <ScrollView
                         android:layout_width="match_parent"
-                        android:layout_height="150dp"
-                        android:background="@drawable/bg_scroll_area">
+                        android:layout_height="120dp"
+                        android:background="@drawable/rounded_background">
 
                         <TextView
                             android:id="@+id/textViewReceived"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:padding="8dp"
-                            android:text="@string/esperando_datos"
-                            android:textColor="@color/textPrimary"
-                            android:textIsSelectable="true" />
+                            android:padding="14dp"
+                            android:textSize="14sp"
+                            android:textColor="@color/colorTextSecondary"
+                            android:text="Esperando datos..."/>
                     </ScrollView>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -144,7 +156,7 @@
                         android:text="Control de LEDs"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/colorAccent" />
+                        android:textColor="@color/colorText" />
 
                     <View
                         android:layout_width="match_parent"
@@ -156,50 +168,43 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonLedA"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginEnd="4dp"
                             android:text="LED A"
-                            android:textColor="@android:color/white"
-                            app:cornerRadius="10dp"
-                            app:backgroundTint="@color/colorButtonA"
-                            app:icon="@drawable/ic_mqtt"
-                            app:iconTint="@android:color/white"
-                            app:iconGravity="textStart" />
+                            android:textAllCaps="false"
+                            android:textSize="14sp"
+                            app:cornerRadius="12dp"
+                            app:backgroundTint="@color/colorPrimary"
+                            android:layout_marginEnd="8dp"/>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonLedB"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginStart="4dp"
-                            android:layout_marginEnd="4dp"
                             android:text="LED B"
-                            android:textColor="@android:color/white"
-                            app:cornerRadius="10dp"
-                            app:backgroundTint="@color/colorButtonB"
-                            app:icon="@drawable/ic_mqtt"
-                            app:iconTint="@android:color/white"
-                            app:iconGravity="textStart" />
+                            android:textAllCaps="false"
+                            android:textSize="14sp"
+                            app:cornerRadius="12dp"
+                            app:backgroundTint="@color/colorGreen"
+                            android:layout_marginEnd="8dp"/>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/buttonLedC"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:layout_marginStart="4dp"
                             android:text="LED C"
-                            android:textColor="@android:color/white"
-                            app:cornerRadius="10dp"
-                            app:backgroundTint="@color/colorButtonC"
-                            app:icon="@drawable/ic_mqtt"
-                            app:iconTint="@android:color/white"
-                            app:iconGravity="textStart" />
+                            android:textAllCaps="false"
+                            android:textSize="14sp"
+                            app:cornerRadius="12dp"
+                            app:backgroundTint="@color/colorAccent"/>
                     </LinearLayout>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
@@ -226,7 +231,7 @@
                         android:text="Enviar mensaje personalizado"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/colorAccent" />
+                        android:textColor="@color/colorText" />
 
                     <View
                         android:layout_width="match_parent"
@@ -249,7 +254,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:hint="Escriba su mensaje aquí"
-                            android:textColor="@color/textPrimary"
+                            android:textColor="@color/colorText"
                             android:inputType="text" />
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -288,7 +293,7 @@
                         android:text="Información de Tópicos"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/colorAccent" />
+                        android:textColor="@color/colorText" />
 
                     <View
                         android:layout_width="match_parent"
@@ -302,7 +307,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/Topicos"
-                        android:textColor="@color/textPrimary"
+                        android:textColor="@color/colorTextSecondary"
                         android:textIsSelectable="true" />
                 </LinearLayout>
             </androidx.cardview.widget.CardView>

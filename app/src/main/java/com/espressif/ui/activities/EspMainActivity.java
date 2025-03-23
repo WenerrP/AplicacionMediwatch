@@ -45,6 +45,7 @@ import com.espressif.provisioning.ESPConstants;
 import com.espressif.provisioning.ESPProvisionManager;
 import com.espressif.wifi_provisioning.BuildConfig;
 import com.espressif.wifi_provisioning.R;
+import com.google.android.material.button.MaterialButton;
 
 public class EspMainActivity extends AppCompatActivity {
 
@@ -58,41 +59,81 @@ public class EspMainActivity extends AppCompatActivity {
     private static final int REQUEST_ENABLE_BT = 2;
 
     private ESPProvisionManager provisionManager;
-    private CardView btnAddDevice;
+    private MaterialButton btnAddDevice;
     private ImageView ivEsp;
     private SharedPreferences sharedPreferences;
     private String deviceType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_esp_main);
-        
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setTitle(R.string.provisioning_title);
-        
-        initViews();
+        try {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_esp_main);
+            
+            // Agregar log para depuración
+            Log.d("EspMainActivity", "onCreate: Iniciando");
+            
+            // Resto de tu código de onCreate()
+            
+            Toolbar toolbar = findViewById(R.id.toolbar);
+            setSupportActionBar(toolbar);
+            getSupportActionBar().setTitle(R.string.provisioning_title);
+            
+            initViews();
 
-        sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
-        provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
-        
-        // Verificar si ya existe un dispositivo aprovisionado
-        SharedPreferences provPrefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        boolean isProvisioned = provPrefs.getBoolean(KEY_IS_PROVISIONED, false);
-        String deviceId = provPrefs.getString(KEY_DEVICE_ID, "");
-        
-        // Solo si está aprovisionado y hay un ID de dispositivo, ir al dashboard
-        if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
-            Log.d(TAG, "Dispositivo ya aprovisionado. ID: " + deviceId);
-            openMqttDashboard(deviceId);
-        } else {
-            Log.d(TAG, "No hay dispositivo aprovisionado. Mostrando pantalla de aprovisionamiento.");
-            // Limpiar para asegurar que no hay datos previos incorrectos
-            SharedPreferences.Editor editor = provPrefs.edit();
-            editor.putBoolean(KEY_IS_PROVISIONED, false);
-            editor.putString(KEY_DEVICE_ID, "");
-            editor.apply();
+            sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
+            provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
+            SharedPreferences provPrefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+            boolean isFirstRun = provPrefs.getBoolean("FIRST_RUN", true);
+            
+            if (isFirstRun) {
+                // Es la primera ejecución, borrar todas las preferencias para asegurar estado limpio
+                Log.d(TAG, "Primera ejecución detectada. Limpiando preferencias...");
+                SharedPreferences.Editor editor = provPrefs.edit();
+                editor.clear(); // Limpiar todas las preferencias existentes
+                editor.putBoolean("FIRST_RUN", false); // Ya no es primera ejecución
+                editor.putBoolean(KEY_IS_PROVISIONED, false);
+                editor.putString(KEY_DEVICE_ID, "");
+                editor.apply();
+                
+                return;
+            }
+            
+            // Para ejecuciones normales, verificar aprovisionamiento
+            boolean isProvisioned = provPrefs.getBoolean(KEY_IS_PROVISIONED, false);
+            String deviceId = provPrefs.getString(KEY_DEVICE_ID, "");
+            
+            // Solo si está aprovisionado y hay un ID de dispositivo válido, ir al dashboard
+            if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
+                // Comprobar si llegamos desde un reset
+                boolean fromReset = getIntent().getBooleanExtra("FROM_RESET", false);
+                
+                if (!fromReset) {
+                    // Solo abrimos el dashboard si no venimos de un reset
+                    Log.d(TAG, "Dispositivo ya aprovisionado. ID: " + deviceId);
+                    openMqttDashboard(deviceId);
+                } else {
+                    Log.d(TAG, "Reset detectado, mostrando pantalla de aprovisionamiento.");
+                }
+            } else {
+                Log.d(TAG, "No hay dispositivo aprovisionado válido. Mostrando pantalla de aprovisionamiento.");
+                // Limpiar para asegurar que no hay datos previos incorrectos
+                SharedPreferences.Editor editor = provPrefs.edit();
+                editor.putBoolean(KEY_IS_PROVISIONED, false);
+                editor.putString(KEY_DEVICE_ID, "");
+                editor.apply();
+            }
+        } catch (Exception e) {
+            // Capturar y loggear cualquier excepción
+            Log.e("EspMainActivity", "ERROR FATAL en onCreate: " + e.getMessage(), e);
+            
+            // Mostrar un mensaje al usuario si es posible
+            try {
+                Toast.makeText(this, "Error al iniciar: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            } catch (Exception toastException) {
+                // Si ni siquiera podemos mostrar un toast, al menos registrar esto
+                Log.e("EspMainActivity", "No se puede mostrar Toast: " + toastException.getMessage());
+            }
         }
     }
 
@@ -169,7 +210,13 @@ public class EspMainActivity extends AppCompatActivity {
 
         ivEsp = findViewById(R.id.iv_esp);
         btnAddDevice = findViewById(R.id.btn_provision_device);
-        btnAddDevice.findViewById(R.id.iv_arrow).setVisibility(View.GONE);
+        
+        // Verificar que el elemento exista antes de acceder
+        View arrowView = btnAddDevice.findViewById(R.id.iv_arrow);
+        if (arrowView != null) {
+            arrowView.setVisibility(View.GONE);
+        }
+        
         btnAddDevice.setOnClickListener(addDeviceBtnClickListener);
 
         TextView tvAppVersion = findViewById(R.id.tv_app_version);
@@ -183,18 +230,52 @@ public class EspMainActivity extends AppCompatActivity {
         }
         String appVersion = getString(R.string.app_version) + " - v" + version;
         tvAppVersion.setText(appVersion);
+
+        // Añadir animación sutil al logo
+        ivEsp.setAlpha(0f);
+        ivEsp.animate()
+            .alpha(1f)
+            .setDuration(800)
+            .start();
+        
+        // Animación para el botón
+        btnAddDevice.setScaleX(0.9f);
+        btnAddDevice.setScaleY(0.9f);
+        btnAddDevice.setAlpha(0f);
+        btnAddDevice.animate()
+            .scaleX(1f)
+            .scaleY(1f)
+            .alpha(1f)
+            .setStartDelay(300)
+            .setDuration(500)
+            .start();
     }
 
     // Reemplazar con este método unificado
     private void openMqttDashboard(String deviceId) {
-        Intent intent = new Intent(EspMainActivity.this, MqttActivity.class);
-        
-        // Pasar el ID del dispositivo si se proporciona
-        if (deviceId != null && !deviceId.isEmpty()) {
-            intent.putExtra("DEVICE_ID", deviceId);
+        // Verificar una vez más que tengamos un deviceId válido
+        if (deviceId == null || deviceId.isEmpty()) {
+            Log.e(TAG, "Error: Intento de abrir MQTT Dashboard sin ID de dispositivo");
+            Toast.makeText(this, "Error: No hay dispositivo asociado", Toast.LENGTH_LONG).show();
+            
+            // Limpiar estado para forzar el aprovisionamiento
+            SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean(KEY_IS_PROVISIONED, false);
+            editor.putString(KEY_DEVICE_ID, "");
+            editor.apply();
+            return;
         }
         
+        // Ahora sí, iniciar MqttActivity con el deviceId
+        Intent intent = new Intent(EspMainActivity.this, MqttActivity.class);
+        intent.putExtra("DEVICE_ID", deviceId);
         startActivity(intent);
+        
+        // Añadir animación de transición
+        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
+    
+        finish();
     }
 
     View.OnClickListener addDeviceBtnClickListener = new View.OnClickListener() {
@@ -379,14 +460,14 @@ public class EspMainActivity extends AppCompatActivity {
             return;
         }
         
+        Log.d(TAG, "Aprovisionamiento completado exitosamente. ID: " + deviceId);
+        
         // Guardar el estado de aprovisionamiento
         SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean(KEY_IS_PROVISIONED, true);
         editor.putString(KEY_DEVICE_ID, deviceId);
         editor.apply();
-        
-        Log.d(TAG, "Aprovisionamiento completado exitosamente. ID: " + deviceId);
         
         // Abrir el MQTT Dashboard
         openMqttDashboard(deviceId);

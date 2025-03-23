@@ -53,114 +53,137 @@ public class MqttActivity extends AppCompatActivity {
     private TextView textViewConnectionStatus;
     private EditText editTextMessage;
 
+    // Define una constante para el nombre de SharedPreferences
+    private static final String PREF_NAME = "EspProvisioningPrefs";
+    private static final String KEY_IS_PROVISIONED = "isProvisioned";
+    private static final String KEY_DEVICE_ID = "deviceId";
+    private static final String KEY_FROM_RESET = "FROM_RESET";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_mqtt);
+        try {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_mqtt);
 
-        // Comprobar si tenemos un ID de dispositivo
-        String deviceId = null;
-        Intent intent = getIntent();
-        if (intent != null && intent.hasExtra("DEVICE_ID")) {
-            deviceId = intent.getStringExtra("DEVICE_ID");
-            Log.d(TAG, "ID de dispositivo recibido: " + deviceId);
-        } 
-        else {
-            // Verificar si hay un dispositivo almacenado en preferencias
-            SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
-            boolean isProvisioned = prefs.getBoolean("isProvisioned", false);
-            deviceId = prefs.getString("deviceId", "");
-            
-            if (!isProvisioned || deviceId == null || deviceId.isEmpty()) {
-                Log.e(TAG, "Error: MqttActivity iniciada sin aprovisionamiento previo");
-                Toast.makeText(this, "Error: No hay dispositivo aprovisionado", Toast.LENGTH_LONG).show();
+            // Comprobar si tenemos un ID de dispositivo
+            String deviceId = null;
+            Intent intent = getIntent();
+            if (intent != null && intent.hasExtra("DEVICE_ID")) {
+                deviceId = intent.getStringExtra("DEVICE_ID");
+                Log.d(TAG, "ID de dispositivo recibido: " + deviceId);
+            } 
+            else {
+                // Verificar si hay un dispositivo almacenado en preferencias
+                SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+                boolean isProvisioned = prefs.getBoolean(KEY_IS_PROVISIONED, false);
+                deviceId = prefs.getString(KEY_DEVICE_ID, "");
                 
-                // Forzar limpieza de estado para asegurar aprovisionamiento
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putBoolean("isProvisioned", false);
-                editor.putString("deviceId", "");
-                editor.apply();
-                
-                // Volver a la actividad de aprovisionamiento
-                Intent mainIntent = new Intent(this, EspMainActivity.class);
-                mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(mainIntent);
-                finish();
-                return;
-            }
-        }
-
-        // Establecer título personalizado en la barra de acción
-        setTitle("MediWatch MQTT");
-        
-        // Si se está utilizando Toolbar en lugar de ActionBar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        if (toolbar != null) {
-            setSupportActionBar(toolbar);
-            getSupportActionBar().setTitle("MediWatch MQTT");
-        }
-
-        // Inicializar vistas
-        textViewReceived = findViewById(R.id.textViewReceived);
-        textViewConnectionStatus = findViewById(R.id.textViewConnectionStatus);
-        editTextMessage = findViewById(R.id.editTextMessage);
-        Button buttonSend = findViewById(R.id.buttonSend);
-        
-        // Agregar botones específicos para LEDs
-        Button buttonLedA = findViewById(R.id.buttonLedA);
-        Button buttonLedB = findViewById(R.id.buttonLedB);
-        Button buttonLedC = findViewById(R.id.buttonLedC);
-
-        // Actualizar información de tópicos en la UI
-        TextView textViewTopicInfo = findViewById(R.id.textViewTopicInfo);
-        textViewTopicInfo.setText("Tópico de suscripción: " + TOPIC_SUBSCRIBE +
-                "\nTópico de publicación: " + TOPIC_PUBLISH +
-                "\nTópico de heartbeat: " + TOPIC_HEARTBEAT);
-
-        // Configurar conexión MQTT
-        connectToMqttBroker();
-        
-        // Configurar el detector de heartbeat
-        setupHeartbeatDetection();
-
-        // Configurar listeners para LEDs
-        if (buttonLedA != null) {
-            buttonLedA.setOnClickListener(v -> sendLedCommand("led_a"));
-        }
-        
-        if (buttonLedB != null) {
-            buttonLedB.setOnClickListener(v -> sendLedCommand("led_b"));
-        }
-        
-        if (buttonLedC != null) {
-            buttonLedC.setOnClickListener(v -> sendLedCommand("led_c"));
-        }
-
-        // Configurar listeners
-        buttonSend.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String message = editTextMessage.getText().toString();
-                if (!message.isEmpty()) {
-                    try {
-                        // Crear un JSON personalizado según lo que se ingrese
-                        JSONObject jsonMessage = new JSONObject();
-                        jsonMessage.put("type", "custom");
-                        JSONObject payload = new JSONObject();
-                        payload.put("message", message);
-                        jsonMessage.put("payload", payload);
-                        
-                        publishMessage(TOPIC_PUBLISH, jsonMessage.toString());
-                        editTextMessage.setText(""); // Limpiar el campo después de enviar
-                    } catch (JSONException e) {
-                        Log.e(TAG, "Error al crear JSON", e);
-                        Toast.makeText(MqttActivity.this, "Error al crear mensaje JSON", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(MqttActivity.this, "Ingresa un mensaje", Toast.LENGTH_SHORT).show();
+                if (!isProvisioned || deviceId == null || deviceId.isEmpty()) {
+                    Log.e(TAG, "Error: MqttActivity iniciada sin aprovisionamiento previo");
+                    Toast.makeText(this, "Error: No hay dispositivo aprovisionado", Toast.LENGTH_LONG).show();
+                    
+                    // Forzar limpieza de estado para asegurar aprovisionamiento
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putBoolean(KEY_IS_PROVISIONED, false);
+                    editor.putString(KEY_DEVICE_ID, "");
+                    editor.apply();
+                    
+                    // Volver a la actividad de aprovisionamiento
+                    Intent mainIntent = new Intent(this, EspMainActivity.class);
+                    mainIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(mainIntent);
+                    finish();
+                    return;
                 }
             }
-        });
+
+            // Establecer título personalizado en la barra de acción
+            setTitle("MediWatch MQTT");
+            
+            // Si se está utilizando Toolbar en lugar de ActionBar
+            Toolbar toolbar = findViewById(R.id.toolbar);
+            if (toolbar != null) {
+                setSupportActionBar(toolbar);
+                getSupportActionBar().setTitle("MediWatch MQTT");
+            }
+
+            // Inicializar vistas
+            textViewReceived = findViewById(R.id.textViewReceived);
+            textViewConnectionStatus = findViewById(R.id.textViewConnectionStatus);
+            editTextMessage = findViewById(R.id.editTextMessage);
+            Button buttonSend = findViewById(R.id.buttonSend);
+            
+            // Agregar botones específicos para LEDs
+            Button buttonLedA = findViewById(R.id.buttonLedA);
+            Button buttonLedB = findViewById(R.id.buttonLedB);
+            Button buttonLedC = findViewById(R.id.buttonLedC);
+
+            // Actualizar información de tópicos en la UI
+            TextView textViewTopicInfo = findViewById(R.id.textViewTopicInfo);
+            textViewTopicInfo.setText("Tópico de suscripción: " + TOPIC_SUBSCRIBE +
+                    "\nTópico de publicación: " + TOPIC_PUBLISH +
+                    "\nTópico de heartbeat: " + TOPIC_HEARTBEAT);
+
+            // Configurar conexión MQTT
+            connectToMqttBroker();
+            
+            // Configurar el detector de heartbeat
+            setupHeartbeatDetection();
+
+            // Configurar listeners para LEDs
+            if (buttonLedA != null) {
+                buttonLedA.setOnClickListener(v -> sendLedCommand("led_a"));
+            }
+            
+            if (buttonLedB != null) {
+                buttonLedB.setOnClickListener(v -> sendLedCommand("led_b"));
+            }
+            
+            if (buttonLedC != null) {
+                buttonLedC.setOnClickListener(v -> sendLedCommand("led_c"));
+            }
+
+            // Configurar listeners
+            buttonSend.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    String message = editTextMessage.getText().toString();
+                    if (!message.isEmpty()) {
+                        try {
+                            // Crear un JSON personalizado según lo que se ingrese
+                            JSONObject jsonMessage = new JSONObject();
+                            jsonMessage.put("type", "custom");
+                            JSONObject payload = new JSONObject();
+                            payload.put("message", message);
+                            jsonMessage.put("payload", payload);
+                            
+                            publishMessage(TOPIC_PUBLISH, jsonMessage.toString());
+                            editTextMessage.setText(""); // Limpiar el campo después de enviar
+                        } catch (JSONException e) {
+                            Log.e(TAG, "Error al crear JSON", e);
+                            Toast.makeText(MqttActivity.this, "Error al crear mensaje JSON", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(MqttActivity.this, "Ingresa un mensaje", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        } catch (Exception e) {
+            // Capturar cualquier excepción para evitar que la app se cierre
+            Log.e(TAG, "Error fatal en onCreate", e);
+            Toast.makeText(this, "Error al iniciar la aplicación: " + e.getMessage(), 
+                         Toast.LENGTH_LONG).show();
+            
+            // Intentar redirigir a la actividad principal
+            try {
+                Intent mainIntent = new Intent(this, EspMainActivity.class);
+                startActivity(mainIntent);
+            } catch (Exception ex) {
+                // Si incluso esto falla, simplemente terminar
+                Log.e(TAG, "No se pudo recuperar de error", ex);
+            }
+            finish();
+        }
     }
     
     /**
@@ -275,20 +298,26 @@ public class MqttActivity extends AppCompatActivity {
      */
     private void updateConnectionStatusUI(boolean connected) {
         runOnUiThread(() -> {
-            View connectionIndicator = findViewById(R.id.connectionIndicator);
-            
-            if (connected) {
-                textViewConnectionStatus.setText("Estado: Dispositivo Conectado");
-                textViewConnectionStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
-                if (connectionIndicator != null) {
-                    connectionIndicator.setBackground(getResources().getDrawable(R.drawable.circle_indicator_green));
+            try {
+                View connectionIndicator = findViewById(R.id.connectionIndicator);
+                TextView statusText = findViewById(R.id.textViewConnectionStatus);
+                
+                if (connectionIndicator == null || statusText == null) {
+                    Log.e(TAG, "Error: Indicador de conexión o texto de estado no encontrado");
+                    return;
                 }
-            } else {
-                textViewConnectionStatus.setText("Estado: Dispositivo Desconectado");
-                textViewConnectionStatus.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-                if (connectionIndicator != null) {
+                
+                if (connected) {
+                    statusText.setText("Conectado");
+                    statusText.setTextColor(getResources().getColor(R.color.colorGreen));
+                    connectionIndicator.setBackground(getResources().getDrawable(R.drawable.circle_indicator_green));
+                } else {
+                    statusText.setText("Desconectado");
+                    statusText.setTextColor(getResources().getColor(R.color.colorRed));
                     connectionIndicator.setBackground(getResources().getDrawable(R.drawable.circle_indicator_red));
                 }
+            } catch (Exception e) {
+                Log.e(TAG, "Error al actualizar UI de estado", e);
             }
         });
     }
@@ -504,18 +533,23 @@ public class MqttActivity extends AppCompatActivity {
                 .setTitle("Resetear provisioning")
                 .setMessage("¿Estás seguro que deseas resetear el provisioning? Esto te permitirá aprovisionar un nuevo dispositivo.")
                 .setPositiveButton("Sí", (dialog, which) -> {
-                    // Limpiar el estado de provisioning
-                    SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putBoolean("isProvisioned", false);
-                    editor.putString("deviceId", "");
-                    editor.apply();
-                    
-                    // Volver a la pantalla principal
-                    Intent intent = new Intent(this, EspMainActivity.class);
-                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
+                    try {
+                        // Limpiar el estado de provisioning
+                        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putBoolean(KEY_IS_PROVISIONED, false);
+                        editor.putString(KEY_DEVICE_ID, "");
+                        editor.apply();
+                        
+                        Intent intent = new Intent(this, EspMainActivity.class);
+                        intent.putExtra("FROM_RESET", true);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                        startActivity(intent);
+                        finish();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error al resetear", e);
+                        Toast.makeText(this, "Error al resetear: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                 })
                 .setNegativeButton("No", null)
                 .show();
@@ -533,8 +567,6 @@ public class MqttActivity extends AppCompatActivity {
     // Solo para Android 13+ (API 33+)
     @Override
     public void onBackPressed() {
-        // No hacer nada - deshabilita el botón atrás
-        // NO LLAMAR a super.onBackPressed() para desactivar completamente el botón
-        super.onBackPressed();
+        Toast.makeText(this, "Use el menú para salir", Toast.LENGTH_SHORT).show();
     }
 }

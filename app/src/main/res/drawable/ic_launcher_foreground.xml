@@ -5,7 +5,7 @@
     android:viewportWidth="400"
     android:viewportHeight="400">
 
-    <!-- Fondo circular principal - Azul más vibrante -->
+     <!-- Fondo circular principal -->
     <path
         android:fillColor="#3F51B5"
         android:pathData="M200,20A180,180 0 1,1 20,200A180,180 0 0,1 200,20z" />
@@ -14,8 +14,8 @@
     <path
         android:fillColor="#FFFFFF"
         android:pathData="M200,40A160,160 0 1,1 40,200A160,160 0 0,1 200,40z" />
-
-    <!-- Línea de electrocardiograma - Rojo brillante para señalar vitalidad -->
+        
+    <!-- Línea de electrocardiograma -->
     <path
         android:pathData="M80,200L120,200L140,160L160,240L180,180L200,200L220,120L240,200L260,200L280,200L320,200"
         android:strokeWidth="8"
@@ -28,26 +28,20 @@
         android:pivotX="200"
         android:pivotY="200"
         android:rotation="-45">
-        <!-- Píldora base - Azul principal -->
+        <!-- Píldora base -->
         <path
             android:fillColor="#3F51B5"
             android:pathData="M160,185L240,185A15,15 0 0,1 255,200L255,200A15,15 0 0,1 240,215L160,215A15,15 0 0,1 145,200L145,200A15,15 0 0,1 160,185z" />
-        <!-- Medio más claro de la píldora - Azul más claro para dar dimensión -->
+        <!-- Medio más claro de la píldora -->
         <path
             android:fillColor="#7986CB"
             android:pathData="M160,185L200,185L200,215L160,215A15,15 0 0,1 145,200L145,200A15,15 0 0,1 160,185z" />
     </group>
     
-    <!-- Círculo de reloj inteligente - Azul para representar tecnología -->
+    <!-- Círculo de reloj inteligente -->
     <path
         android:pathData="M200,100A100,100 0 1,1 100,200A100,100 0 0,1 200,100z"
         android:strokeWidth="12"
         android:strokeColor="#3F51B5"
         android:fillColor="#00000000" />
-
-    <!-- Pequeño detalle de brillo para dar sensación de modernidad -->
-    <path
-        android:pathData="M150,100A5,5 0 1,1 140,100A5,5 0 0,1 150,100z"
-        android:fillColor="#FFFFFF" />
-
 </vector>

@@ -149,7 +149,7 @@
     <string name="enviar_comando">Enviar comando:</string>
     <string name="escribe_tu_mensaje">Escribe tu mensaje</string>
     <string name="enviar">Enviar</string>
-    <string name="Topicos">Información de tópicos MQTT</string>
+    <string name="Topicos">Tópico de suscripción: /device/status\nTópico de publicación: /device/commands\nTópico de heartbeat: /device/heartbeat</string>
     <string name="retry">Volver a Provisioning</string>
     <string name="provisioning_title">Aprovisionamiento ESP</string>
 
