@@ -35,7 +35,8 @@ public class MqttActivity extends AppCompatActivity {
     private String TOPIC_SUBSCRIBE = "/device/status";
     private String TOPIC_PUBLISH = "/device/commands";
     private String TOPIC_HEARTBEAT = "/device/heartbeat";
-    
+    private String deviceId; // Añadir esta línea
+
     // Constantes para la detección de heartbeat - REDUCIDO
     private static final int HEARTBEAT_TIMEOUT = 10000; // 10 segundos (más rápido)
     private static final int CONNECTION_CHECK_INTERVAL = 3000; // Verificar cada 3 segundos
@@ -411,6 +412,23 @@ public class MqttActivity extends AppCompatActivity {
                         if (jsonMessage.has("type") && "pong".equals(jsonMessage.getString("type"))) {
                             Log.d(TAG, "Respuesta a ping recibida, dispositivo activo");
                             updateConnectionStatus(true);
+                        }
+                        
+                        // Asegurarse de que el código existente incluya este manejo de mensajes:
+                        if (jsonMessage.has("type") && "ping".equals(jsonMessage.getString("type"))) {
+                            Log.d(TAG, "Ping recibido, enviando pong");
+                            
+                            // Enviar respuesta "pong"
+                            JSONObject pongMessage = new JSONObject();
+                            pongMessage.put("type", "pong");
+                            if (jsonMessage.has("finder") && jsonMessage.getBoolean("finder")) {
+                                // Si el ping viene del buscador, responder con más información
+                                pongMessage.put("status", "online");
+                                pongMessage.put("deviceId", deviceId);
+                                pongMessage.put("timestamp", System.currentTimeMillis());
+                            }
+                            
+                            publishMessage(TOPIC_PUBLISH, pongMessage.toString());
                         }
                     } catch (JSONException e) {
                         Log.e(TAG, "Error al procesar JSON recibido", e);

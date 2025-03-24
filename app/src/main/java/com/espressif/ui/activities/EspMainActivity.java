@@ -47,6 +47,18 @@ import com.espressif.wifi_provisioning.BuildConfig;
 import com.espressif.wifi_provisioning.R;
 import com.google.android.material.button.MaterialButton;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallback;
+import org.eclipse.paho.client.mqttv3.MqttClient;
+import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 public class EspMainActivity extends AppCompatActivity {
 
     private static final String TAG = EspMainActivity.class.getSimpleName();
@@ -249,6 +261,62 @@ public class EspMainActivity extends AppCompatActivity {
             .setStartDelay(300)
             .setDuration(500)
             .start();
+        
+        // Botón para recuperar dispositivo ya conectado
+        TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
+        tvRecoverDevice.setOnClickListener(v -> {
+            // Mostrar diálogo de progreso
+            AlertDialog progressDialog = new AlertDialog.Builder(this)
+                .setTitle("Buscando dispositivos")
+                .setMessage("Buscando dispositivos MediWatch ya conectados a la red...")
+                .setCancelable(false)
+                .create();
+            progressDialog.show();
+            
+            // Ejecutar búsqueda en segundo plano
+            new Thread(() -> {
+                try {
+                    // Intentar buscar dispositivos mediante ping-pong MQTT
+                    boolean deviceFound = findDeviceViaMqttPingPong();
+                    
+                    // Actualizar UI en hilo principal
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        
+                        // En el listener del botón "¿Ya tienes un dispositivo conectado a WiFi?"
+                        // Cuando el dispositivo responde:
+                        if (deviceFound) {
+                            Toast.makeText(this, "¡Dispositivo encontrado! Conectando...", Toast.LENGTH_SHORT).show();
+                            
+                            // Redireccionar a MqttActivity
+                            String deviceId = "mediwatch_" + System.currentTimeMillis(); // ID genérico, la autenticación es por tópico
+                            
+                            // Guardar en SharedPreferences
+                            SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putBoolean(KEY_IS_PROVISIONED, true);
+                            editor.putString(KEY_DEVICE_ID, deviceId);
+                            editor.apply();
+                            
+                            // Abrir dashboard MQTT - Esto inicia MqttActivity
+                            openMqttDashboard(deviceId);
+                        } else {
+                            // No se encontró el dispositivo, mostrar opciones adicionales
+                            showNoDeviceFoundDialog();
+                        }
+                    });
+                    
+                } catch (Exception e) {
+                    Log.e(TAG, "Error buscando dispositivos: " + e.getMessage(), e);
+                    
+                    // Actualizar UI en hilo principal
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    });
+                }
+            }).start();
+        });
     }
 
     // Reemplazar con este método unificado
@@ -471,5 +539,127 @@ public class EspMainActivity extends AppCompatActivity {
         
         // Abrir el MQTT Dashboard
         openMqttDashboard(deviceId);
+    }
+
+    /**
+     * Intenta buscar un dispositivo ya conectado mediante ping-pong MQTT
+     * @return true si se encontró un dispositivo activo
+     */
+    private boolean findDeviceViaMqttPingPong() {
+        final String BROKER_URI = "tcp://broker.emqx.io:1883"; // Mismo broker que usa MqttActivity
+        final String CLIENT_ID = "AndroidFinder_" + System.currentTimeMillis();
+        final String TOPIC_PUBLISH = "/device/commands"; // Mismo tópico que usa MqttActivity
+        final String TOPIC_SUBSCRIBE = "/device/status"; // Donde escucharemos respuestas
+        final long TIMEOUT_MS = 10000; // 10 segundos de espera máxima
+        
+        // Variables para sincronización
+        final boolean[] deviceResponded = {false};
+        final CountDownLatch latch = new CountDownLatch(1);
+        
+        MqttClient mqttClient = null;
+        
+        try {
+            // Conectar al broker MQTT
+            mqttClient = new MqttClient(BROKER_URI, CLIENT_ID, null);
+            
+            MqttConnectOptions options = new MqttConnectOptions();
+            options.setCleanSession(true);
+            options.setConnectionTimeout(10); // 10 segundos para conectar
+            
+            mqttClient.connect(options);
+            
+            // Configurar callback para recibir respuestas
+            mqttClient.setCallback(new MqttCallback() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    Log.e(TAG, "Conexión MQTT perdida durante búsqueda", cause);
+                    latch.countDown(); // Liberar el latch para continuar
+                }
+                
+                @Override
+                public void messageArrived(String topic, MqttMessage message) {
+                    String payload = new String(message.getPayload());
+                    Log.d(TAG, "Mensaje recibido en tópico " + topic + ": " + payload);
+                    
+                    try {
+                        // Verificar si el mensaje es un "pong" o tiene formato de estado online
+                        JSONObject json = new JSONObject(payload);
+                        
+                        if ((json.has("type") && "pong".equals(json.getString("type"))) || 
+                            (json.has("status") && "online".equals(json.getString("status")))) {
+                            Log.d(TAG, "¡Dispositivo encontrado! Respuesta: " + payload);
+                            deviceResponded[0] = true;
+                            latch.countDown(); // Liberar el latch para continuar
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "Error al analizar respuesta JSON", e);
+                    }
+                }
+                
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {
+                    Log.d(TAG, "Mensaje de búsqueda enviado correctamente");
+                }
+            });
+            
+            // Suscribirse al tópico de respuestas
+            mqttClient.subscribe(TOPIC_SUBSCRIBE, 1); // QoS 1
+            
+            // Enviar ping para provocar respuesta
+            JSONObject pingMessage = new JSONObject();
+            pingMessage.put("type", "ping");
+            pingMessage.put("finder", true);
+            pingMessage.put("timestamp", System.currentTimeMillis());
+            
+            MqttMessage message = new MqttMessage(pingMessage.toString().getBytes());
+            message.setQos(1); // QoS 1 para garantizar entrega
+            mqttClient.publish(TOPIC_PUBLISH, message);
+            
+            Log.d(TAG, "Ping enviado: " + pingMessage.toString());
+            
+            // Esperar respuesta o timeout
+            latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            
+            return deviceResponded[0];
+        } catch (Exception e) {
+            Log.e(TAG, "Error en búsqueda MQTT", e);
+            return false;
+        } finally {
+            // Limpiar recursos
+            if (mqttClient != null && mqttClient.isConnected()) {
+                try {
+                    mqttClient.disconnect();
+                    mqttClient.close();
+                } catch (MqttException e) {
+                    Log.e(TAG, "Error al desconectar cliente MQTT de búsqueda", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Muestra diálogo cuando no se encuentra ningún dispositivo
+     */
+    private void showNoDeviceFoundDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Dispositivo no encontrado");
+        builder.setMessage("No se detectó ningún dispositivo MediWatch conectado a la red. ¿Qué deseas hacer?");
+        
+        builder.setPositiveButton("Configurar nuevo dispositivo", (dialog, which) -> {
+            // Iniciar flujo normal de aprovisionamiento
+            addDeviceClick();
+        });
+        
+        builder.setNeutralButton("Intentar de nuevo", (dialog, which) -> {
+            // Volver a intentar la búsqueda
+            TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
+            if (tvRecoverDevice != null) {
+                tvRecoverDevice.performClick();
+            }
+        });
+        
+        builder.setNegativeButton("Cancelar", null);
+        
+        builder.show();
     }
 }

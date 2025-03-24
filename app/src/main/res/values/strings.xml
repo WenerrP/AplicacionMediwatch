@@ -152,5 +152,8 @@
     <string name="Topicos">Tópico de suscripción: /device/status\nTópico de publicación: /device/commands\nTópico de heartbeat: /device/heartbeat</string>
     <string name="retry">Volver a Provisioning</string>
     <string name="provisioning_title">Aprovisionamiento ESP</string>
+    <string name="Monitoreo">Conecta tu dispositivo ESP32 para comenzar a monitorear en tiempo real</string>
+    <string name="Con_Dis">Conectar Dispositivo</string>
+    <string name="Configurado">¿Ya tiene un dispositivo configurado?</string>
 
 </resources>

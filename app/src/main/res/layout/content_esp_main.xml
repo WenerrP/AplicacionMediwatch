@@ -67,6 +67,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Agregar justo después del botón principal -->
+    <TextView
+        android:id="@+id/tv_recover_device"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="¿Ya tienes un dispositivo conectado a WiFi?"
+        android:textColor="@color/colorAccent"
+        android:textSize="14sp"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground"
+        app:layout_constraintTop_toBottomOf="@id/btn_provision_device"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
+
     <!-- Información de versión y autores en el fondo -->
     <LinearLayout
         android:id="@+id/ll_version"
