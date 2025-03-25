@@ -37,29 +37,18 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
 
 import com.espressif.AppConstants;
 import com.espressif.provisioning.ESPConstants;
 import com.espressif.provisioning.ESPProvisionManager;
 import com.espressif.ui.utils.AnimationUtils;
+import com.espressif.ui.utils.LocationUtils;
 import com.espressif.ui.utils.MqttDeviceFinder;
 import com.espressif.wifi_provisioning.BuildConfig;
 import com.espressif.wifi_provisioning.R;
 import com.google.android.material.button.MaterialButton;
-
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import com.espressif.ui.utils.NavigationUtils;
+import com.espressif.ui.utils.DialogUtils;
 
 public class EspMainActivity extends AppCompatActivity {
 
@@ -401,67 +390,25 @@ public class EspMainActivity extends AppCompatActivity {
         }
     }
 
+    // Reemplazar el método askForLocation() original con:
     private void askForLocation() {
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(true);
-        builder.setMessage(R.string.dialog_msg_gps);
-
-        // Set up the buttons
-        builder.setPositiveButton(R.string.btn_ok, new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-                startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_LOCATION);
-            }
+        LocationUtils.askForLocation(this, () -> {
+            // Este callback se ejecuta cuando el usuario abre la configuración de ubicación
+            Log.d(TAG, "Usuario abrió configuración de ubicación");
         });
-
-        builder.setNegativeButton(R.string.btn_cancel, new DialogInterface.OnClickListener() {
-
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-
-        builder.show();
     }
 
+    // Reemplazar el método isLocationEnabled() original con:
     private boolean isLocationEnabled() {
-
-        boolean gps_enabled = false;
-        boolean network_enabled = false;
-        LocationManager lm = (LocationManager) getApplicationContext().getSystemService(Activity.LOCATION_SERVICE);
-
-        try {
-            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-        }
-
-        try {
-            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ex) {
-        }
-
-        Log.d(TAG, "GPS Enabled : " + gps_enabled + " , Network Enabled : " + network_enabled);
-
-        boolean result = gps_enabled || network_enabled;
-        return result;
+        return LocationUtils.isLocationEnabled(getApplicationContext());
     }
 
     private void goToBLEProvisionLandingActivity(int securityType) {
-
-        Intent intent = new Intent(EspMainActivity.this, BLEProvisionLanding.class);
-        intent.putExtra(AppConstants.KEY_SECURITY_TYPE, securityType);
-        startActivity(intent);
+        NavigationUtils.goToBLEProvisioning(this, securityType);
     }
 
     private void goToWiFiProvisionLandingActivity(int securityType) {
-
-        Intent intent = new Intent(EspMainActivity.this, ProvisionLanding.class);
-        intent.putExtra(AppConstants.KEY_SECURITY_TYPE, securityType);
-        startActivity(intent);
+        NavigationUtils.goToWiFiProvisioning(this, securityType);
     }
 
     // Método para ser llamado cuando el aprovisionamiento se completa
@@ -489,25 +436,19 @@ public class EspMainActivity extends AppCompatActivity {
      * Muestra diálogo cuando no se encuentra ningún dispositivo
      */
     private void showNoDeviceFoundDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Dispositivo no encontrado");
-        builder.setMessage("No se detectó ningún dispositivo MediWatch conectado a la red. ¿Qué deseas hacer?");
-        
-        builder.setPositiveButton("Configurar nuevo dispositivo", (dialog, which) -> {
-            // Iniciar flujo normal de aprovisionamiento
-            addDeviceClick();
-        });
-        
-        builder.setNeutralButton("Intentar de nuevo", (dialog, which) -> {
-            // Volver a intentar la búsqueda
-            TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
-            if (tvRecoverDevice != null) {
-                tvRecoverDevice.performClick();
+        DialogUtils.showNoDeviceFoundDialog(this, new DialogUtils.DialogActionCallback() {
+            @Override
+            public void onPositiveAction() {
+                addDeviceClick();
+            }
+
+            @Override
+            public void onNeutralAction() {
+                TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
+                if (tvRecoverDevice != null) {
+                    tvRecoverDevice.performClick();
+                }
             }
         });
-        
-        builder.setNegativeButton("Cancelar", null);
-        
-        builder.show();
     }
 }
