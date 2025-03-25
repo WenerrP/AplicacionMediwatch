@@ -78,74 +78,34 @@ public class EspMainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        try {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_esp_main);
-            
-            // Agregar log para depuración
-            Log.d("EspMainActivity", "onCreate: Iniciando");
-            
-            // Resto de tu código de onCreate()
-            
-            Toolbar toolbar = findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
-            getSupportActionBar().setTitle(R.string.provisioning_title);
-            
-            initViews();
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_esp_main);
 
-            sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
-            provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
-            SharedPreferences provPrefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-            boolean isFirstRun = provPrefs.getBoolean("FIRST_RUN", true);
-            
-            if (isFirstRun) {
-                // Es la primera ejecución, borrar todas las preferencias para asegurar estado limpio
-                Log.d(TAG, "Primera ejecución detectada. Limpiando preferencias...");
-                SharedPreferences.Editor editor = provPrefs.edit();
-                editor.clear(); // Limpiar todas las preferencias existentes
-                editor.putBoolean("FIRST_RUN", false); // Ya no es primera ejecución
-                editor.putBoolean(KEY_IS_PROVISIONED, false);
-                editor.putString(KEY_DEVICE_ID, "");
-                editor.apply();
-                
-                return;
-            }
-            
-            // Para ejecuciones normales, verificar aprovisionamiento
-            boolean isProvisioned = provPrefs.getBoolean(KEY_IS_PROVISIONED, false);
-            String deviceId = provPrefs.getString(KEY_DEVICE_ID, "");
-            
-            // Solo si está aprovisionado y hay un ID de dispositivo válido, ir al dashboard
-            if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
-                // Comprobar si llegamos desde un reset
-                boolean fromReset = getIntent().getBooleanExtra("FROM_RESET", false);
-                
-                if (!fromReset) {
-                    // Solo abrimos el dashboard si no venimos de un reset
-                    Log.d(TAG, "Dispositivo ya aprovisionado. ID: " + deviceId);
-                    openMqttDashboard(deviceId);
-                } else {
-                    Log.d(TAG, "Reset detectado, mostrando pantalla de aprovisionamiento.");
-                }
-            } else {
-                Log.d(TAG, "No hay dispositivo aprovisionado válido. Mostrando pantalla de aprovisionamiento.");
-                // Limpiar para asegurar que no hay datos previos incorrectos
-                SharedPreferences.Editor editor = provPrefs.edit();
-                editor.putBoolean(KEY_IS_PROVISIONED, false);
-                editor.putString(KEY_DEVICE_ID, "");
-                editor.apply();
-            }
-        } catch (Exception e) {
-            // Capturar y loggear cualquier excepción
-            Log.e("EspMainActivity", "ERROR FATAL en onCreate: " + e.getMessage(), e);
-            
-            // Mostrar un mensaje al usuario si es posible
-            try {
-                Toast.makeText(this, "Error al iniciar: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            } catch (Exception toastException) {
-                // Si ni siquiera podemos mostrar un toast, al menos registrar esto
-                Log.e("EspMainActivity", "No se puede mostrar Toast: " + toastException.getMessage());
-            }
+        // Inicializar sharedPreferences
+        sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
+        
+        // Inicializar provisionManager
+        provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
+        
+        // Inicializar deviceType con valor predeterminado
+        deviceType = sharedPreferences.getString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
+        
+        // Inicializar vistas de la UI
+        initViews();
+        
+        // Verificar si el usuario ya está aprovisionado
+        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        boolean isProvisioned = prefs.getBoolean(KEY_IS_PROVISIONED, false);
+        String deviceId = prefs.getString(KEY_DEVICE_ID, "");
+
+        if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
+            // Redirigir al dashboard MQTT
+            openMqttDashboard(deviceId);
+        } else {
+            // Redirigir a la pantalla de selección de tipo de usuario
+            Intent intent = new Intent(EspMainActivity.this, UserTypeActivity.class);
+            startActivity(intent);
+            finish();
         }
     }
 

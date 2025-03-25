@@ -32,7 +32,7 @@ public class AppConstants {
     public static final String KEY_THREAD_DATASET = "thread_dataset";
     public static final String KEY_THREAD_SCAN_AVAILABLE = "thread_scan_available";
 
-    public static final String ESP_PREFERENCES = "Esp_Preferences";
+    public static final String ESP_PREFERENCES = "espressif_pref";
 
     public static final String DEVICE_TYPE_SOFTAP = "softap";
     public static final String DEVICE_TYPE_BLE = "ble";

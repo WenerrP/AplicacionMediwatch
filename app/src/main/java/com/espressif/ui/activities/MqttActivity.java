@@ -585,6 +585,7 @@ public class MqttActivity extends AppCompatActivity {
     // Solo para Android 13+ (API 33+)
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         Toast.makeText(this, "Use el menú para salir", Toast.LENGTH_SHORT).show();
     }
 }

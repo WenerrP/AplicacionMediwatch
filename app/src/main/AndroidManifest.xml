@@ -92,6 +92,11 @@
             android:name="com.espressif.ui.activities.ProofOfPossessionActivity"
             android:label="@string/title_activity_pop"
             android:theme="@style/AppTheme.NoActionBar" />
+
+        <activity android:name="com.espressif.ui.activities.UserTypeActivity" />
+        <activity android:name="com.espressif.ui.activities.PatientActivity" />
+        <activity android:name="com.espressif.ui.activities.FamilyActivity" />
+        <activity android:name="com.espressif.ui.activities.FamilyDashboardActivity" />
             
     </application>
 

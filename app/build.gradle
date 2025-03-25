@@ -1,4 +1,5 @@
 apply plugin: 'com.android.application'
+apply plugin: 'com.google.gms.google-services'
 
 def getGitHash = { ->
     def stdout = new ByteArrayOutputStream()
@@ -52,16 +53,16 @@ android {
             buildConfigField "boolean", "isFilteringByPrefixAllowed", "true"
         }
     }
-    namespace 'com.espressif.wifi_provisioning'
+        namespace 'com.espressif.wifi_provisioning'
 }
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'androidx.core:core:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.3.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     implementation 'com.google.android.material:material:1.1.0'
     implementation 'androidx.preference:preference:1.1.1'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
 
     implementation 'org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5'
     implementation 'org.eclipse.paho:org.eclipse.paho.android.service:1.1.1'
@@ -77,7 +78,17 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-threadnetwork:16.0.1'
     implementation 'androidx.activity:activity:1.8.0'
+    implementation 'androidx.credentials:credentials:1.0.0'
+    implementation 'androidx.credentials:credentials-play-services-auth:1.0.0'
+    implementation 'com.google.android.libraries.identity.googleid:googleid:1.1.1'
 
+    // Firebase Core
+    implementation platform('com.google.firebase:firebase-bom:32.8.0')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-database'
+
+    // Google Play Services Auth (para Google Sign-In)
+    implementation 'com.google.android.gms:play-services-auth:20.6.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
