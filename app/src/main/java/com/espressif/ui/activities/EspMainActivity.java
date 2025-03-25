@@ -44,6 +44,7 @@ import com.espressif.AppConstants;
 import com.espressif.provisioning.ESPConstants;
 import com.espressif.provisioning.ESPProvisionManager;
 import com.espressif.ui.utils.AnimationUtils;
+import com.espressif.ui.utils.MqttDeviceFinder;
 import com.espressif.wifi_provisioning.BuildConfig;
 import com.espressif.wifi_provisioning.R;
 import com.google.android.material.button.MaterialButton;
@@ -222,15 +223,13 @@ public class EspMainActivity extends AppCompatActivity {
             // Ejecutar búsqueda en segundo plano
             new Thread(() -> {
                 try {
-                    // Intentar buscar dispositivos mediante ping-pong MQTT
-                    boolean deviceFound = findDeviceViaMqttPingPong();
+                    // Usar la nueva clase utilitaria
+                    boolean deviceFound = MqttDeviceFinder.findDevice();
                     
-                    // Actualizar UI en hilo principal
+                    // El resto del código permanece igual
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
                         
-                        // En el listener del botón "¿Ya tienes un dispositivo conectado a WiFi?"
-                        // Cuando el dispositivo responde:
                         if (deviceFound) {
                             Toast.makeText(this, "¡Dispositivo encontrado! Conectando...", Toast.LENGTH_SHORT).show();
                             
@@ -247,7 +246,6 @@ public class EspMainActivity extends AppCompatActivity {
                             // Abrir dashboard MQTT - Esto inicia MqttActivity
                             openMqttDashboard(deviceId);
                         } else {
-                            // No se encontró el dispositivo, mostrar opciones adicionales
                             showNoDeviceFoundDialog();
                         }
                     });
@@ -485,102 +483,6 @@ public class EspMainActivity extends AppCompatActivity {
         
         // Abrir el MQTT Dashboard
         openMqttDashboard(deviceId);
-    }
-
-    /**
-     * Intenta buscar un dispositivo ya conectado mediante ping-pong MQTT
-     * @return true si se encontró un dispositivo activo
-     */
-    private boolean findDeviceViaMqttPingPong() {
-        final String BROKER_URI = "tcp://broker.emqx.io:1883"; // Mismo broker que usa MqttActivity
-        final String CLIENT_ID = "AndroidFinder_" + System.currentTimeMillis();
-        final String TOPIC_PUBLISH = "/device/commands"; // Mismo tópico que usa MqttActivity
-        final String TOPIC_SUBSCRIBE = "/device/status"; // Donde escucharemos respuestas
-        final long TIMEOUT_MS = 10000; // 10 segundos de espera máxima
-        
-        // Variables para sincronización
-        final boolean[] deviceResponded = {false};
-        final CountDownLatch latch = new CountDownLatch(1);
-        
-        MqttClient mqttClient = null;
-        
-        try {
-            // Conectar al broker MQTT
-            mqttClient = new MqttClient(BROKER_URI, CLIENT_ID, null);
-            
-            MqttConnectOptions options = new MqttConnectOptions();
-            options.setCleanSession(true);
-            options.setConnectionTimeout(10); // 10 segundos para conectar
-            
-            mqttClient.connect(options);
-            
-            // Configurar callback para recibir respuestas
-            mqttClient.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.e(TAG, "Conexión MQTT perdida durante búsqueda", cause);
-                    latch.countDown(); // Liberar el latch para continuar
-                }
-                
-                @Override
-                public void messageArrived(String topic, MqttMessage message) {
-                    String payload = new String(message.getPayload());
-                    Log.d(TAG, "Mensaje recibido en tópico " + topic + ": " + payload);
-                    
-                    try {
-                        // Verificar si el mensaje es un "pong" o tiene formato de estado online
-                        JSONObject json = new JSONObject(payload);
-                        
-                        if ((json.has("type") && "pong".equals(json.getString("type"))) || 
-                            (json.has("status") && "online".equals(json.getString("status")))) {
-                            Log.d(TAG, "¡Dispositivo encontrado! Respuesta: " + payload);
-                            deviceResponded[0] = true;
-                            latch.countDown(); // Liberar el latch para continuar
-                        }
-                    } catch (JSONException e) {
-                        Log.e(TAG, "Error al analizar respuesta JSON", e);
-                    }
-                }
-                
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Mensaje de búsqueda enviado correctamente");
-                }
-            });
-            
-            // Suscribirse al tópico de respuestas
-            mqttClient.subscribe(TOPIC_SUBSCRIBE, 1); // QoS 1
-            
-            // Enviar ping para provocar respuesta
-            JSONObject pingMessage = new JSONObject();
-            pingMessage.put("type", "ping");
-            pingMessage.put("finder", true);
-            pingMessage.put("timestamp", System.currentTimeMillis());
-            
-            MqttMessage message = new MqttMessage(pingMessage.toString().getBytes());
-            message.setQos(1); // QoS 1 para garantizar entrega
-            mqttClient.publish(TOPIC_PUBLISH, message);
-            
-            Log.d(TAG, "Ping enviado: " + pingMessage.toString());
-            
-            // Esperar respuesta o timeout
-            latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            
-            return deviceResponded[0];
-        } catch (Exception e) {
-            Log.e(TAG, "Error en búsqueda MQTT", e);
-            return false;
-        } finally {
-            // Limpiar recursos
-            if (mqttClient != null && mqttClient.isConnected()) {
-                try {
-                    mqttClient.disconnect();
-                    mqttClient.close();
-                } catch (MqttException e) {
-                    Log.e(TAG, "Error al desconectar cliente MQTT de búsqueda", e);
-                }
-            }
-        }
     }
 
     /**
