@@ -43,6 +43,7 @@ import androidx.cardview.widget.CardView;
 import com.espressif.AppConstants;
 import com.espressif.provisioning.ESPConstants;
 import com.espressif.provisioning.ESPProvisionManager;
+import com.espressif.ui.utils.AnimationUtils;
 import com.espressif.wifi_provisioning.BuildConfig;
 import com.espressif.wifi_provisioning.R;
 import com.google.android.material.button.MaterialButton;
@@ -203,24 +204,9 @@ public class EspMainActivity extends AppCompatActivity {
         String appVersion = getString(R.string.app_version) + " - v" + version;
         tvAppVersion.setText(appVersion);
 
-        // Añadir animación sutil al logo
-        ivEsp.setAlpha(0f);
-        ivEsp.animate()
-            .alpha(1f)
-            .setDuration(800)
-            .start();
-        
-        // Animación para el botón
-        btnAddDevice.setScaleX(0.9f);
-        btnAddDevice.setScaleY(0.9f);
-        btnAddDevice.setAlpha(0f);
-        btnAddDevice.animate()
-            .scaleX(1f)
-            .scaleY(1f)
-            .alpha(1f)
-            .setStartDelay(300)
-            .setDuration(500)
-            .start();
+        // Usar la clase utilitaria para las animaciones
+        AnimationUtils.animateLogo(ivEsp);
+        AnimationUtils.animateButton(btnAddDevice);
         
         // Botón para recuperar dispositivo ya conectado
         TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
