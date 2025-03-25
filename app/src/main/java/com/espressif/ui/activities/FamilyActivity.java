@@ -14,6 +14,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import com.espressif.AppConstants;
+
 public class FamilyActivity extends AppCompatActivity {
 
     private DatabaseReference mDatabase;
@@ -31,31 +33,32 @@ public class FamilyActivity extends AppCompatActivity {
             if (!patientId.isEmpty()) {
                 checkPatientId(patientId);
             } else {
-                etPatientId.setError("Por favor ingrese un ID válido");
+                etPatientId.setError(AppConstants.ERROR_EMPTY_PATIENT_ID);
             }
         });
     }
 
     private void checkPatientId(String patientId) {
-        mDatabase.child("users").child(patientId).addListenerForSingleValueEvent(new ValueEventListener() {
+        mDatabase.child(AppConstants.FB_USERS_PATH).child(patientId)
+                .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.exists()) {
-                    // ID válido, redirigir a la pantalla de alarmas y resúmenes
                     Intent intent = new Intent(FamilyActivity.this, FamilyDashboardActivity.class);
-                    intent.putExtra("PATIENT_ID", patientId);
+                    intent.putExtra(AppConstants.EXTRA_PATIENT_ID, patientId);
                     startActivity(intent);
                     finish();
                 } else {
-                    Log.w("FamilyActivity", "ID de paciente no encontrado");
+                    Log.w(AppConstants.TAG_FAMILY_ACTIVITY, AppConstants.ERROR_PATIENT_NOT_FOUND);
                     EditText etPatientId = findViewById(R.id.et_patient_id);
-                    etPatientId.setError("ID de paciente no encontrado");
+                    etPatientId.setError(AppConstants.ERROR_PATIENT_NOT_FOUND);
                 }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.w("FamilyActivity", "checkPatientId:onCancelled", databaseError.toException());
+                Log.w(AppConstants.TAG_FAMILY_ACTIVITY, "checkPatientId:onCancelled", 
+                      databaseError.toException());
             }
         });
     }

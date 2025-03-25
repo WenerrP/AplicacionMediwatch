@@ -40,7 +40,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public class WiFiConfigActivity extends AppCompatActivity {
 
-    private static final String TAG = WiFiConfigActivity.class.getSimpleName();
+    private static final String TAG = AppConstants.TAG_WIFI_CONFIG;
 
     private TextView tvTitle, tvBack, tvCancel;
     private CardView btnNext;
@@ -122,7 +122,7 @@ public class WiFiConfigActivity extends AppCompatActivity {
 
         String deviceName = provisionManager.getEspDevice().getDeviceName();
         if (!TextUtils.isEmpty(deviceName)) {
-            String msg = String.format(getString(R.string.setup_instructions), deviceName);
+            String msg = String.format(AppConstants.FORMAT_SETUP_INSTRUCTIONS, deviceName);
             TextView tvInstructionMsg = findViewById(R.id.setup_instructions_view);
             tvInstructionMsg.setText(msg);
         }
@@ -151,9 +151,9 @@ public class WiFiConfigActivity extends AppCompatActivity {
     private void showAlertForDeviceDisconnected() {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(false);
+        builder.setCancelable(AppConstants.DIALOG_NOT_CANCELABLE);
         builder.setTitle(R.string.error_title);
-        builder.setMessage(R.string.dialog_msg_ble_device_disconnection);
+        builder.setMessage(AppConstants.ERROR_DEVICE_DISCONNECT);
 
         // Set up the buttons
         builder.setPositiveButton(R.string.btn_ok, new DialogInterface.OnClickListener() {
@@ -170,26 +170,20 @@ public class WiFiConfigActivity extends AppCompatActivity {
 
     // Método que maneja el éxito de la conexión WiFi
     private void onWifiConnectSuccess() {
-        // Código existente
-        
-        // Al final, agregar:
-        // Obtener el deviceId
         String deviceId = provisionManager.getEspDevice().getDeviceName();
         
-        // Guardar el estado de provisioning
-        SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(
+                AppConstants.PREFS_PROVISIONING, 
+                MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean("isProvisioned", true);
-        editor.putString("deviceId", deviceId);
+        editor.putBoolean(AppConstants.KEY_IS_PROVISIONED, true);
+        editor.putString(AppConstants.KEY_DEVICE_ID, deviceId);
         editor.apply();
         
-        // Ir al MQTT Dashboard directamente, saltándose EspMainActivity
         Intent intent = new Intent(this, MqttActivity.class);
-        intent.putExtra("DEVICE_ID", deviceId);
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(AppConstants.KEY_DEVICE_ID, deviceId);
+        intent.addFlags(AppConstants.FLAG_CLEAR_ACTIVITIES);
         startActivity(intent);
-        
-        // Finalizar esta actividad
         finish();
     }
 }

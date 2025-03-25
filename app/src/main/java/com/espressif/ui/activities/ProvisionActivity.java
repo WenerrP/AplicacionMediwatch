@@ -43,7 +43,7 @@ import org.greenrobot.eventbus.ThreadMode;
 
 public class ProvisionActivity extends AppCompatActivity {
 
-    private static final String TAG = ProvisionActivity.class.getSimpleName();
+    private static final String TAG = AppConstants.TAG_PROVISION_ACTIVITY;
 
     private TextView tvTitle, tvBack, tvCancel;
     private ImageView tick1, tick2, tick3;
@@ -90,12 +90,10 @@ public class ProvisionActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(DeviceConnectionEvent event) {
-
         Log.d(TAG, "On Device Connection Event RECEIVED : " + event.getEventType());
 
         switch (event.getEventType()) {
-
-            case ESPConstants.EVENT_DEVICE_DISCONNECTED:
+            case AppConstants.EVENT_DEVICE_DISCONNECTED:
                 if (!isFinishing() && !isProvisioningCompleted) {
                     showAlertForDeviceDisconnected();
                 }
@@ -489,20 +487,16 @@ public class ProvisionActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // Este método se llama cuando el provisioning se completa exitosamente
     private void onProvisioningSuccess(String deviceId) {
-        // Guardar el estado de provisioning
-        SharedPreferences prefs = getSharedPreferences("EspProvisioningPrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences(AppConstants.PREF_PROVISIONING, MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean("isProvisioned", true);
-        editor.putString("deviceId", deviceId);
+        editor.putBoolean(AppConstants.KEY_IS_PROVISIONED, true);
+        editor.putString(AppConstants.KEY_DEVICE_ID, deviceId);
         editor.apply();
         
-        // Abrir el MQTT Dashboard y limpiar la pila de actividades
         Intent intent = new Intent(this, MqttActivity.class);
-        intent.putExtra("DEVICE_ID", deviceId);
-        // Estos flags evitan que el usuario regrese a pantallas anteriores con el botón Atrás
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        intent.putExtra(AppConstants.EXTRA_DEVICE_ID, deviceId);
+        intent.addFlags(AppConstants.FLAGS_NEW_TASK_CLEAR_TASK);
         startActivity(intent);
         finish();
     }

@@ -51,7 +51,7 @@ import java.util.ArrayList;
 
 public class ThreadConfigActivity extends AppCompatActivity {
 
-    private static final String TAG = ThreadConfigActivity.class.getSimpleName();
+    private static final String TAG = AppConstants.TAG_THREAD_CONFIG;
 
     private Handler handler;
     private ProgressBar progressBar;
@@ -141,7 +141,7 @@ public class ThreadConfigActivity extends AppCompatActivity {
         txtNextBtn = findViewById(R.id.text_btn);
         txtNextBtn.setText(R.string.btn_next);
         btnNext.setEnabled(false);
-        btnNext.setAlpha(0.5f);
+        btnNext.setAlpha(AppConstants.BUTTON_DISABLED_ALPHA);
         btnNext.setOnClickListener(nextBtnClickListener);
 
         preferredCredentialsLauncher = registerForActivityResult(new ActivityResultContracts.StartIntentSenderForResult(),
@@ -197,60 +197,53 @@ public class ThreadConfigActivity extends AppCompatActivity {
 
     private void startThreadScan() {
 
-        Log.d(TAG, "Start Thread Scan");
+        Log.d(TAG, AppConstants.LOG_THREAD_SCAN_START);
         threadNetworkList.clear();
 
-        runOnUiThread(new Runnable() {
-
-            @Override
-            public void run() {
-                showLoading(getString(R.string.progress_thread_networks));
-            }
+        runOnUiThread(() -> {
+            showLoading(getString(R.string.progress_thread_networks));
         });
 
-        handler.postDelayed(stopScanningTask, 15000);
+        handler.postDelayed(stopScanningTask, AppConstants.THREAD_SCAN_TIMEOUT);
 
         provisionManager.getEspDevice().scanThreadNetworks(new WiFiScanListener() {
 
             @Override
             public void onWifiListReceived(final ArrayList<WiFiAccessPoint> wifiList) {
 
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
+                runOnUiThread(() -> {
 
-                        threadNetworkList.addAll(wifiList);
-                        handler.removeCallbacks(stopScanningTask);
-                        boolean isNetworkAvailable = false;
+                    threadNetworkList.addAll(wifiList);
+                    handler.removeCallbacks(stopScanningTask);
+                    boolean isNetworkAvailable = false;
 
-                        if (!threadNetworkList.isEmpty()) {
+                    if (!threadNetworkList.isEmpty()) {
 
-                            for (WiFiAccessPoint network : threadNetworkList) {
+                        for (WiFiAccessPoint network : threadNetworkList) {
 
-                                if (preferredCredentials.getNetworkName().equals(network.getWifiName())) {
+                            if (preferredCredentials.getNetworkName().equals(network.getWifiName())) {
 
-                                    Log.d(TAG, "Thread Network available : " + network.getWifiName());
-                                    isNetworkAvailable = true;
-                                    break;
-                                }
+                                Log.d(TAG, String.format(AppConstants.LOG_THREAD_NETWORK_FOUND, network.getWifiName()));
+                                isNetworkAvailable = true;
+                                break;
                             }
+                        }
 
-                            if (isNetworkAvailable) {
+                        if (isNetworkAvailable) {
 
-                                hideLoading();
-                                txtNextBtn.setText(R.string.btn_next);
-                                String str = "Available Thread Network : " + preferredCredentials.getNetworkName() + "\n"
-                                        + "Do you want to proceed ?";
-                                tvProgress.setText(str);
+                            hideLoading();
+                            txtNextBtn.setText(R.string.btn_next);
+                            String str = String.format(AppConstants.PROGRESS_NETWORK_AVAILABLE, 
+                                    preferredCredentials.getNetworkName());
+                            tvProgress.setText(str);
 
-                            } else {
-                                hideLoading();
-                                showError(getString(R.string.error_title), getString(R.string.error_no_thread_network), false);
-                            }
                         } else {
                             hideLoading();
                             showError(getString(R.string.error_title), getString(R.string.error_no_thread_network), false);
                         }
+                    } else {
+                        hideLoading();
+                        showError(getString(R.string.error_title), getString(R.string.error_no_thread_network), false);
                     }
                 });
             }
@@ -258,14 +251,12 @@ public class ThreadConfigActivity extends AppCompatActivity {
             @Override
             public void onWiFiScanFailed(Exception e) {
 
-                Log.e(TAG, "onWiFiScanFailed");
+                Log.e(TAG, AppConstants.LOG_THREAD_SCAN_FAILED);
                 e.printStackTrace();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        hideLoading();
-                        showError(getString(R.string.error_title), "Failed to get thread scan list", false);
-                    }
+                runOnUiThread(() -> {
+                    hideLoading();
+                    showError(getString(R.string.error_title), 
+                            AppConstants.ERROR_THREAD_SCAN_FAILED, false);
                 });
             }
         });
@@ -316,7 +307,7 @@ public class ThreadConfigActivity extends AppCompatActivity {
 
     private void showLoading(String msg) {
         btnNext.setEnabled(false);
-        btnNext.setAlpha(0.5f);
+        btnNext.setAlpha(AppConstants.BUTTON_DISABLED_ALPHA);
         tvProgress.setText(msg);
         progressBar.setVisibility(View.VISIBLE);
         tvError.setVisibility(View.GONE);
@@ -324,7 +315,7 @@ public class ThreadConfigActivity extends AppCompatActivity {
 
     private void hideLoading() {
         btnNext.setEnabled(true);
-        btnNext.setAlpha(1f);
+        btnNext.setAlpha(AppConstants.BUTTON_ENABLED_ALPHA);
         progressBar.setVisibility(View.GONE);
     }
 

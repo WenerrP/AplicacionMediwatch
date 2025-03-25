@@ -1,8 +1,14 @@
 <resources>
 
-    <string name="app_name">Aprovisionamiento ESP</string>
-    <string name="app_name_ble">ESP BLE Prov</string>
-    <string name="app_name_softap">ESP SoftAP Prov</string>
+    <!-- App Names -->
+    <string name="app_name">MediWatch</string>
+    <string name="powered_by_esp">Desarrollado por MediWatch</string>
+    <string name="app_version">Versión de la App</string>
+
+    <!-- Device Types -->
+    <string name="device_type_ble">ESP BLE PROV</string>
+    <string name="device_type_softap">ESP SoftAP PROV</string>
+    <string name="device_type_both">BLE + SoftAP</string>
 
     <!-- Screen Titles -->
     <string name="title_activity_connect_device">Conectar al Dispositivo</string>
@@ -13,8 +19,9 @@
     <string name="title_activity_provisioning">Aprovisionamiento</string>
     <string name="title_activity_settings">Configuración</string>
     <string name="title_activity_add_device">Añadir Dispositivo</string>
+    <string name="provisioning_title">Aprovisionamiento ESP</string>
 
-    <!-- Button Text -->
+    <!-- Common Button Text -->
     <string name="btn_ok">Aceptar</string>
     <string name="btn_cancel">Cancelar</string>
     <string name="btn_next">Siguiente</string>
@@ -30,6 +37,7 @@
     <string name="btn_yes">Sí</string>
     <string name="btn_get_permission">Obtener permiso</string>
     <string name="btn_try_again">Intentar de nuevo</string>
+    <string name="enviar">Enviar</string>
 
     <!-- Hint Text -->
     <string name="hint_pop">Prueba de posesión</string>
@@ -109,17 +117,34 @@
     <string name="hint_key">Ingresar PIN</string>
     <string name="devices_title">Dispositivos</string>
     <string name="enter_device_key">Ingrese Su PIN de Prueba de Posesión</string>
-    <string name="app_version">Versión de la App</string>
-    <string name="powered_by_esp">Desarrollado por MediWatch</string>
 
     <string name="join_other_network">Unirse a Otra Red</string>
     <string name="networks">Redes</string>
     <string name="connect_your_device">Conectar a su dispositivo</string>
 
-    <string name="dialog_msg_gps">Los servicios de ubicación están desactivados. Por favor, actívelos para continuar</string>
+    <!-- Dialog Titles -->
+    <string name="dialog_title_camera_permission">Se Necesita Permiso de Cámara</string>
+    <string name="dialog_title_location_permission">Se Necesita Permiso de Ubicación</string>
+    <string name="dialog_msg_location_permission_use">Es necesario para conectar dispositivos Bluetooth cercanos.</string>
+    <string name="dialog_title_nearby_devices_permission">Permiso de Dispositivos Cercanos</string>
+    <string name="dialog_msg_nearby_devices_permission_use">El permiso de Dispositivos Cercanos es necesario para escanear y conectarse a dispositivos BLE. Por favor, concédalo en Configuración.</string>
+    <string name="dialog_title_location">Ubicación requerida</string>
+    <string name="dialog_title_disconnect">Desconexión</string>
+    <string name="title_searching">Buscando dispositivo</string>
+    <string name="title_no_device">Dispositivo no encontrado</string>
+    <string name="title_device_recovery">Recuperar Dispositivo</string>
+    <string name="dialog_title_device_type">Seleccionar Tipo de Dispositivo</string>
+
+    <!-- Dialog Messages -->
     <string name="dialog_msg_device_selection">Seleccionar Tipo de Dispositivo</string>
     <string name="dialog_title_network_info">Ingresar Información de Red</string>
     <string name="dialog_msg_ble_device_disconnection">Dispositivo desconectado</string>
+    <string name="dialog_msg_gps">La ubicación es necesaria para buscar dispositivos BLE. ¿Desea activarla?</string>
+    <string name="dialog_msg_disconnect">El dispositivo se ha desconectado inesperadamente</string>
+    <string name="dialog_msg_select_device_type">¿Cómo desea conectarse a su dispositivo ESP32?</string>
+    <string name="message_searching_device">Buscando dispositivos MediWatch conectados...</string>
+    <string name="message_no_device_found">No se detectó ningún dispositivo MediWatch conectado a la red. ¿Qué deseas hacer?</string>
+    <string name="msg_search_existing_device">Buscar un dispositivo MediWatch ya configurado en la red</string>
 
     <!-- Preference Titles -->
     <string name="device_settings">Configuración del Dispositivo</string>
@@ -134,12 +159,6 @@
     <string name="summary_unsecured">No Seguro</string>
     <string name="summary_username">(Aplicable para la versión de seguridad 2)</string>
 
-    <!--Dialog texts-->
-    <string name="dialog_title_camera_permission">Se Necesita Permiso de Cámara</string>
-    <string name="dialog_title_location_permission">Se Necesita Permiso de Ubicación</string>
-    <string name="dialog_msg_location_permission_use">Es necesario para conectar dispositivos Bluetooth cercanos.</string>
-    <string name="dialog_title_nearby_devices_permission">Permiso de Dispositivos Cercanos</string>
-    <string name="dialog_msg_nearby_devices_permission_use">El permiso de Dispositivos Cercanos es necesario para escanear y conectarse a dispositivos BLE. Por favor, concédalo en Configuración.</string>
     <!--Mensajes MQTT-->
     <string name="mqtt_dashboard">MQTT Dashboard</string>
     <string name="mqttName">MediWatch MQTT</string>
@@ -148,13 +167,13 @@
     <string name="esperando_datos">Esperando datos...</string>
     <string name="enviar_comando">Enviar comando:</string>
     <string name="escribe_tu_mensaje">Escribe tu mensaje</string>
-    <string name="enviar">Enviar</string>
     <string name="Topicos">Tópico de suscripción: /device/status\nTópico de publicación: /device/commands\nTópico de heartbeat: /device/heartbeat</string>
     <string name="retry">Volver a Provisioning</string>
-    <string name="provisioning_title">Aprovisionamiento ESP</string>
     <string name="Monitoreo">Conecta tu dispositivo ESP32 para comenzar a monitorear en tiempo real</string>
     <string name="Con_Dis">Conectar Dispositivo</string>
     <string name="Configurado">¿Ya tiene un dispositivo configurado?</string>
 
+    <string name="btn_search_device">Buscar Dispositivo</string>
+    
 
 </resources>

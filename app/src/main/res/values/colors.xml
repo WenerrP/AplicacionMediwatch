@@ -32,5 +32,5 @@
     <color name="color_orange">#ff5207</color>
     <color name="color_dark_gray">#555555</color>
     <color name="purple_500">#673AB7</color>
-
+    <color name="primary">#2196F3</color>
 </resources>

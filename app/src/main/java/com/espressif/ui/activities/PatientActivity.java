@@ -22,9 +22,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.android.gms.common.api.ApiException;
 
+import com.espressif.AppConstants;
+
 public class PatientActivity extends AppCompatActivity {
 
-    private static final int RC_SIGN_IN = 9001;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;
     private DatabaseReference mDatabase;
@@ -48,20 +49,20 @@ public class PatientActivity extends AppCompatActivity {
 
     private void signIn() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        startActivityForResult(signInIntent, AppConstants.RC_SIGN_IN);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == RC_SIGN_IN) {
+        if (requestCode == AppConstants.RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account);
             } catch (ApiException e) {
-                Log.w("PatientActivity", "Google sign in failed", e);
+                Log.w(AppConstants.TAG_PATIENT_ACTIVITY, AppConstants.ERROR_GOOGLE_SIGN_IN, e);
             }
         }
     }
@@ -74,7 +75,8 @@ public class PatientActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         createUserInDatabase(user);
                     } else {
-                        Log.w("PatientActivity", "signInWithCredential:failure", task.getException());
+                        Log.w(AppConstants.TAG_PATIENT_ACTIVITY, AppConstants.ERROR_SIGN_IN_CREDENTIAL, 
+                              task.getException());
                     }
                 });
     }
@@ -82,15 +84,14 @@ public class PatientActivity extends AppCompatActivity {
     private void createUserInDatabase(FirebaseUser user) {
         if (user != null) {
             String userId = user.getUid();
-            mDatabase.child("users").child(userId).setValue(user)
+            mDatabase.child(AppConstants.FB_USERS_PATH).child(userId).setValue(user)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            // Redirigir al proceso de aprovisionamiento
-                            Intent intent = new Intent(PatientActivity.this, EspMainActivity.class);
-                            startActivity(intent);
-                            finish();
+                            // Cambiar aquí para ir al provisioning
+                            NavigationManager.goToProvisioningAfterLogin(this);
                         } else {
-                            Log.w("PatientActivity", "createUserInDatabase:failure", task.getException());
+                            Log.w(AppConstants.TAG_PATIENT_ACTIVITY, AppConstants.ERROR_CREATE_USER, 
+                                  task.getException());
                         }
                     });
         }

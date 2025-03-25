@@ -43,7 +43,7 @@ import java.util.ArrayList;
 
 public class ProofOfPossessionActivity extends AppCompatActivity {
 
-    private static final String TAG = ProofOfPossessionActivity.class.getSimpleName();
+    private static final String TAG = AppConstants.TAG_POP_ACTIVITY;
 
     private TextView tvTitle, tvBack, tvCancel;
     private CardView btnNext;
@@ -95,12 +95,10 @@ public class ProofOfPossessionActivity extends AppCompatActivity {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(DeviceConnectionEvent event) {
-
         Log.d(TAG, "On Device Connection Event RECEIVED : " + event.getEventType());
 
         switch (event.getEventType()) {
-
-            case ESPConstants.EVENT_DEVICE_DISCONNECTED:
+            case AppConstants.EVENT_DEVICE_DISCONNECTED:
                 if (!isFinishing()) {
                     showAlertForDeviceDisconnected();
                 }

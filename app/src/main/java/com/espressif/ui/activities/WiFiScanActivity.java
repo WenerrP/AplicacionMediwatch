@@ -53,7 +53,7 @@ import java.util.ArrayList;
 
 public class WiFiScanActivity extends AppCompatActivity {
 
-    private static final String TAG = WiFiScanActivity.class.getSimpleName();
+    private static final String TAG = AppConstants.TAG_WIFI_SCAN;
 
     private Handler handler;
     private ImageView ivRefresh;
@@ -148,22 +148,16 @@ public class WiFiScanActivity extends AppCompatActivity {
     }
 
     private void startWifiScan() {
-
         Log.d(TAG, "Start Wi-Fi Scan");
         wifiAPList.clear();
 
-        runOnUiThread(new Runnable() {
-
-            @Override
-            public void run() {
-                updateProgressAndScanBtn(true);
-            }
+        runOnUiThread(() -> {
+            updateProgressAndScanBtn(true);
         });
 
-        handler.postDelayed(stopScanningTask, 15000);
+        handler.postDelayed(stopScanningTask, AppConstants.WIFI_SCAN_TIMEOUT);
 
         provisionManager.getEspDevice().scanNetworks(new WiFiScanListener() {
-
             @Override
             public void onWifiListReceived(final ArrayList<WiFiAccessPoint> wifiList) {
 
@@ -178,16 +172,13 @@ public class WiFiScanActivity extends AppCompatActivity {
 
             @Override
             public void onWiFiScanFailed(Exception e) {
-
-                // TODO
                 Log.e(TAG, "onWiFiScanFailed");
                 e.printStackTrace();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateProgressAndScanBtn(false);
-                        Toast.makeText(WiFiScanActivity.this, "Failed to get Wi-Fi scan list", Toast.LENGTH_LONG).show();
-                    }
+                runOnUiThread(() -> {
+                    updateProgressAndScanBtn(false);
+                    Toast.makeText(WiFiScanActivity.this, 
+                            AppConstants.ERROR_WIFI_SCAN_FAILED, 
+                            Toast.LENGTH_LONG).show();
                 });
             }
         });
@@ -239,7 +230,7 @@ public class WiFiScanActivity extends AppCompatActivity {
                             String networkName = etSsid.getText().toString();
 
                             if (TextUtils.isEmpty(networkName)) {
-                                etSsid.setError(getString(R.string.error_ssid_empty));
+                                etSsid.setError(AppConstants.ERROR_SSID_EMPTY);
 
                             } else {
                                 dialog.dismiss();
@@ -250,9 +241,9 @@ public class WiFiScanActivity extends AppCompatActivity {
 
                             if (TextUtils.isEmpty(password)) {
 
-                                if (authMode != ESPConstants.WIFI_OPEN) {
+                                if (authMode != AppConstants.WIFI_SECURITY_OPEN) {
                                     TextInputLayout passwordLayout = dialogView.findViewById(R.id.layout_password);
-                                    passwordLayout.setError(getString(R.string.error_password_empty));
+                                    passwordLayout.setError(AppConstants.ERROR_PASSWORD_EMPTY);
 
                                 } else {
                                     dialog.dismiss();
@@ -332,11 +323,10 @@ public class WiFiScanActivity extends AppCompatActivity {
     }
 
     private void showAlertForDeviceDisconnected() {
-
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setCancelable(false);
+        builder.setCancelable(AppConstants.DIALOG_NOT_CANCELABLE);
         builder.setTitle(R.string.error_title);
-        builder.setMessage(R.string.dialog_msg_ble_device_disconnection);
+        builder.setMessage(AppConstants.ERROR_DEVICE_DISCONNECTED);
 
         // Set up the buttons
         builder.setPositiveButton(R.string.btn_ok, new DialogInterface.OnClickListener() {

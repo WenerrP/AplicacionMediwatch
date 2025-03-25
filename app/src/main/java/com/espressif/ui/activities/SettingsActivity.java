@@ -34,6 +34,8 @@ import com.espressif.wifi_provisioning.R;
 
 public class SettingsActivity extends AppCompatActivity {
 
+    private static final String TAG = AppConstants.TAG_SETTINGS;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,12 +54,13 @@ public class SettingsActivity extends AppCompatActivity {
         String version = "";
         try {
             PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            version = pInfo.versionName;
+            version = AppConstants.VERSION_PREFIX + pInfo.versionName;
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
 
-        String appVersion = getString(R.string.app_version) + " - v" + version;
+        String appVersion = getString(R.string.app_version) + 
+                AppConstants.VERSION_SEPARATOR + version;
         tvAppVersion.setText(appVersion);
     }
 
@@ -89,7 +92,10 @@ public class SettingsActivity extends AppCompatActivity {
             userNamePrefWifi = prefMgr.findPreference(AppConstants.KEY_USER_NAME_WIFI);
             userNamePrefThread = prefMgr.findPreference(AppConstants.KEY_USER_NAME_THREAD);
 
-            boolean isSecure = sharedPreferences.getBoolean(AppConstants.KEY_SECURITY_TYPE, true);
+            boolean isSecure = sharedPreferences.getBoolean(
+                AppConstants.KEY_SECURITY_TYPE, 
+                AppConstants.DEFAULT_SECURITY_ENABLED);
+
             if (isSecure) {
                 securityPref.setSummary(R.string.summary_secured);
                 userNamePrefWifi.setVisible(true);

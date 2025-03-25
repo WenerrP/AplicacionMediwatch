@@ -44,7 +44,7 @@ import java.util.ArrayList;
 
 public class ProvisionLanding extends ManualProvBaseActivity {
 
-    private static final String TAG = ProvisionLanding.class.getSimpleName();
+    private static final String TAG = AppConstants.TAG_PROVISION_LANDING;
 
     private static final int REQUEST_FINE_LOCATION = 10;
     private static final int WIFI_SETTINGS_ACTIVITY_REQUEST = 11;
@@ -69,11 +69,10 @@ public class ProvisionLanding extends ManualProvBaseActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-
         super.onActivityResult(requestCode, resultCode, data);
 
         switch (requestCode) {
-            case WIFI_SETTINGS_ACTIVITY_REQUEST:
+            case AppConstants.WIFI_SETTINGS_ACTIVITY_REQUEST:
                 if (hasPermissions()) {
                     connectDevice();
                 }
@@ -85,8 +84,7 @@ public class ProvisionLanding extends ManualProvBaseActivity {
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-
-            case REQUEST_FINE_LOCATION:
+            case AppConstants.REQUEST_FINE_LOCATION:
                 // TODO
                 break;
         }
@@ -157,8 +155,8 @@ public class ProvisionLanding extends ManualProvBaseActivity {
 
             provisionManager.getEspDevice().connectWiFiDevice();
         } else {
-            Log.e(TAG, "Not able to connect device as Location permission is not granted.");
-            Toast.makeText(ProvisionLanding.this, "Please give location permission to connect device", Toast.LENGTH_LONG).show();
+            Log.e(TAG, AppConstants.ERROR_LOCATION_PERMISSION_NOT_GRANTED);
+            Toast.makeText(ProvisionLanding.this, AppConstants.ERROR_LOCATION_PERMISSION, Toast.LENGTH_LONG).show();
         }
     }
 
@@ -229,7 +227,7 @@ public class ProvisionLanding extends ManualProvBaseActivity {
                     goToWiFiConfigActivity();
                 }
             } else {
-                if (!deviceCaps.contains("no_pop") && securityType != AppConstants.SEC_TYPE_0) {
+                if (!deviceCaps.contains(AppConstants.CAPABILITY_NO_POP) && securityType != AppConstants.SEC_TYPE_0) {
                     goToPopActivity();
                 } else if (deviceCaps.contains(AppConstants.CAPABILITY_WIFI_SCAN)) {
                     goToWifiScanListActivity();

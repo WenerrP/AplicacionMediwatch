@@ -65,15 +65,7 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
 
     private static final String TAG = BLEProvisionLanding.class.getSimpleName();
 
-    // Request codes
-    private static final int REQUEST_ENABLE_BT = 1;
-    private static final int REQUEST_FINE_LOCATION = 2;
-
-    // Time out
-    private static final long DEVICE_CONNECT_TIMEOUT = 20000;
-
-//    public static boolean isBleWorkDone = false;
-
+    // Remove duplicate constants and use AppConstants instead
     private Button btnScan, btnPrefix;
     private ListView listView;
     private TextView textPrefix;
@@ -137,13 +129,13 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
             Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (ActivityCompat.checkSelfPermission(BLEProvisionLanding.this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                    startActivityForResult(enableBtIntent, AppConstants.REQUEST_ENABLE_BT);
                 } else {
                     Log.e(TAG, "BLUETOOTH_CONNECT permission is not granted.");
                     return;
                 }
             } else {
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                startActivityForResult(enableBtIntent, AppConstants.REQUEST_ENABLE_BT);
             }
 
         } else {
@@ -170,12 +162,12 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
         Log.d(TAG, "onActivityResult, requestCode : " + requestCode + ", resultCode : " + resultCode);
 
         // User chose not to enable Bluetooth.
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
+        if (requestCode == AppConstants.REQUEST_ENABLE_BT && resultCode == Activity.RESULT_CANCELED) {
             finish();
             return;
         }
 
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
+        if (requestCode == AppConstants.REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
             startScan();
         }
     }
@@ -186,7 +178,7 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
 
         switch (requestCode) {
 
-            case REQUEST_FINE_LOCATION: {
+            case AppConstants.REQUEST_FINE_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     startScan();
@@ -293,12 +285,12 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                startActivityForResult(enableBtIntent, AppConstants.REQUEST_ENABLE_BT);
             } else {
                 requestLocationAndBtPermission();
             }
         } else {
-            startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+            startActivityForResult(enableBtIntent, AppConstants.REQUEST_ENABLE_BT);
         }
     }
 
@@ -316,9 +308,9 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
     private void requestLocationAndBtPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT}, REQUEST_FINE_LOCATION);
+                    Manifest.permission.BLUETOOTH_CONNECT}, AppConstants.REQUEST_FINE_LOCATION);
         } else {
-            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_FINE_LOCATION);
+            requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, AppConstants.REQUEST_FINE_LOCATION);
         }
     }
 
@@ -326,7 +318,7 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
         ArrayList<String> deviceCaps = provisionManager.getEspDevice().getDeviceCapabilities();
 
         if (deviceCaps != null) {
-            if (!deviceCaps.contains("no_pop") && securityType != AppConstants.SEC_TYPE_0) {
+            if (!deviceCaps.contains(AppConstants.CAPABILITY_NO_POP) && securityType != AppConstants.SEC_TYPE_0) {
                 goToPopActivity();
             } else if (deviceCaps.contains(AppConstants.CAPABILITY_WIFI_SCAN)) {
                 goToWifiScanListActivity();
@@ -493,7 +485,7 @@ public class BLEProvisionLanding extends ManualProvBaseActivity {
 
             if (ActivityCompat.checkSelfPermission(BLEProvisionLanding.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 provisionManager.getEspDevice().connectBLEDevice(bleDevice.getBluetoothDevice(), uuid);
-                handler.postDelayed(disconnectDeviceTask, DEVICE_CONNECT_TIMEOUT);
+                handler.postDelayed(disconnectDeviceTask, AppConstants.DEVICE_CONNECT_TIMEOUT);
             } else {
                 Log.e(TAG, "Not able to connect device as Location permission is not granted.");
                 Toast.makeText(BLEProvisionLanding.this, "Please give location permission to connect device", Toast.LENGTH_LONG).show();

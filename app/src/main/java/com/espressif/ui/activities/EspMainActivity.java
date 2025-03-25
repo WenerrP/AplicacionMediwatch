@@ -14,16 +14,13 @@
 
 package com.espressif.ui.activities;
 
-import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
+// Android imports
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -35,99 +32,145 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+// AndroidX imports
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
-import androidx.cardview.widget.CardView;
 
-import com.espressif.AppConstants;
-import com.espressif.provisioning.ESPConstants;
-import com.espressif.provisioning.ESPProvisionManager;
-import com.espressif.wifi_provisioning.BuildConfig;
-import com.espressif.wifi_provisioning.R;
+// Material Design imports
 import com.google.android.material.button.MaterialButton;
 
-import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
-import org.eclipse.paho.client.mqttv3.MqttCallback;
-import org.eclipse.paho.client.mqttv3.MqttClient;
-import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
-import org.eclipse.paho.client.mqttv3.MqttException;
-import org.eclipse.paho.client.mqttv3.MqttMessage;
-import org.json.JSONException;
-import org.json.JSONObject;
+// App imports
+import com.espressif.AppConstants;
+import com.espressif.wifi_provisioning.BuildConfig;
+import com.espressif.wifi_provisioning.R;
+import com.espressif.ui.animations.ViewAnimator;
+import com.espressif.ui.animations.ActivityTransitionAnimator;
+import com.espressif.ui.dialogs.DialogManager;
+import com.espressif.ui.navigation.NavigationManager;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+// Nuevos imports
+import com.espressif.coordinators.DeviceCoordinator;
 
-public class EspMainActivity extends AppCompatActivity {
+public class EspMainActivity extends AppCompatActivity implements DeviceCoordinator.DeviceProvisioningCallback {
 
-    private static final String TAG = EspMainActivity.class.getSimpleName();
-    private static final String PREF_NAME = "EspProvisioningPrefs";
-    private static final String KEY_IS_PROVISIONED = "isProvisioned";
-    private static final String KEY_DEVICE_ID = "deviceId";
+    private static final String TAG = AppConstants.TAG_ESP_MAIN;
 
-    // Request codes
-    private static final int REQUEST_LOCATION = 1;
-    private static final int REQUEST_ENABLE_BT = 2;
-
-    private ESPProvisionManager provisionManager;
+    private DeviceCoordinator coordinator;
     private MaterialButton btnAddDevice;
     private ImageView ivEsp;
-    private SharedPreferences sharedPreferences;
-    private String deviceType;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_esp_main);
 
-        // Inicializar sharedPreferences
-        sharedPreferences = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE);
-        
-        // Inicializar provisionManager
-        provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
-        
-        // Inicializar deviceType con valor predeterminado
-        deviceType = sharedPreferences.getString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
-        
-        // Inicializar vistas de la UI
+        initManagers();
         initViews();
-        
-        // Verificar si el usuario ya está aprovisionado
-        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        boolean isProvisioned = prefs.getBoolean(KEY_IS_PROVISIONED, false);
-        String deviceId = prefs.getString(KEY_DEVICE_ID, "");
 
-        if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
-            // Redirigir al dashboard MQTT
-            openMqttDashboard(deviceId);
+        // Verificar si venimos del login
+        boolean fromLogin = getIntent().getBooleanExtra(AppConstants.EXTRA_FROM_LOGIN, false);
+        if (fromLogin) {
+            startProvisioningFlow();
         } else {
-            // Redirigir a la pantalla de selección de tipo de usuario
-            Intent intent = new Intent(EspMainActivity.this, UserTypeActivity.class);
-            startActivity(intent);
-            finish();
+            checkProvisionedStatus();
         }
+    }
+
+    private void initManagers() {
+        coordinator = new DeviceCoordinator(this);
+    }
+
+    private void checkProvisionedStatus() {
+        if (coordinator.isProvisioned()) {
+            String deviceId = coordinator.getDeviceId();
+            if (!deviceId.isEmpty()) {
+                NavigationManager.goToMqttDashboard(this, deviceId);
+                return;
+            }
+        }
+        NavigationManager.goToUserType(this);
+    }
+
+    private void navigateToUserType() {
+        Intent intent = new Intent(this, UserTypeActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        updateDeviceTypePreferences();
+        updateDeviceIcon();
+    }
 
-        deviceType = sharedPreferences.getString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
+    private void updateDeviceTypePreferences() {
+        String deviceType = coordinator.getDeviceType();
         if (deviceType.equals("wifi")) {
-            SharedPreferences.Editor editor = sharedPreferences.edit();
+            SharedPreferences.Editor editor = getSharedPreferences(AppConstants.ESP_PREFERENCES, Context.MODE_PRIVATE).edit();
             editor.putString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
             editor.apply();
+            coordinator.setDeviceType(AppConstants.DEVICE_TYPE_DEFAULT);
         }
+    }
 
-        deviceType = sharedPreferences.getString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
-        if (deviceType.equals(AppConstants.DEVICE_TYPE_BLE)) {
-            ivEsp.setImageResource(R.drawable.ic_esp_ble);
-        } else if (deviceType.equals(AppConstants.DEVICE_TYPE_SOFTAP)) {
-            ivEsp.setImageResource(R.drawable.ic_esp_softap);
-        } else {
-            ivEsp.setImageResource(R.drawable.ic_esp);
+    private void updateDeviceIcon() {
+        String deviceType = coordinator.getDeviceType();
+        int iconResource;
+        switch (deviceType) {
+            case AppConstants.DEVICE_TYPE_BLE:
+                iconResource = R.drawable.ic_esp_ble;
+                break;
+            case AppConstants.DEVICE_TYPE_SOFTAP:
+                iconResource = R.drawable.ic_esp_softap;
+                break;
+            default:
+                iconResource = R.drawable.ic_esp;
+                break;
         }
+        ivEsp.setImageResource(iconResource);
+    }
+
+    private void initViews() {
+        ivEsp = findViewById(R.id.iv_esp);
+        btnAddDevice = findViewById(R.id.btn_provision_device);
+        
+        setupButtonVisibility();
+        setupClickListeners();
+        setupAppVersion();
+        setupAnimations();
+    }
+
+    private void setupButtonVisibility() {
+        View arrowView = btnAddDevice.findViewById(R.id.iv_arrow);
+        if (arrowView != null) {
+            arrowView.setVisibility(View.GONE);
+        }
+    }
+
+    private void setupClickListeners() {
+        btnAddDevice.setOnClickListener(v -> handleAddDeviceClick());
+        
+        findViewById(R.id.tv_recover_device).setOnClickListener(v -> {
+            Intent intent = new Intent(this, DeviceRecoveryActivity.class);
+            startActivity(intent);
+        });
+    }
+
+    private void setupAppVersion() {
+        try {
+            TextView tvAppVersion = findViewById(R.id.tv_app_version);
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            tvAppVersion.setText(String.format("%s %s", getString(R.string.app_version), version));
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e(TAG, "Error getting app version", e);
+        }
+    }
+
+    private void setupAnimations() {
+        ViewAnimator.playLogoAnimation(ivEsp);
+        ViewAnimator.playButtonScaleAnimation(btnAddDevice);
     }
 
     @Override
@@ -163,183 +206,48 @@ public class EspMainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == REQUEST_LOCATION) {
+        if (requestCode == AppConstants.REQUEST_LOCATION) {
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
 
-                if (isLocationEnabled()) {
+                if (coordinator.isLocationEnabled()) {
                     addDeviceClick();
                 }
             }
         }
 
-        if (requestCode == REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
+        if (requestCode == AppConstants.REQUEST_ENABLE_BT && resultCode == RESULT_OK) {
             Toast.makeText(this, "Bluetooth is turned ON, you can provision device now.", Toast.LENGTH_LONG).show();
         }
     }
 
-    private void initViews() {
-
-        ivEsp = findViewById(R.id.iv_esp);
-        btnAddDevice = findViewById(R.id.btn_provision_device);
-        
-        // Verificar que el elemento exista antes de acceder
-        View arrowView = btnAddDevice.findViewById(R.id.iv_arrow);
-        if (arrowView != null) {
-            arrowView.setVisibility(View.GONE);
-        }
-        
-        btnAddDevice.setOnClickListener(addDeviceBtnClickListener);
-
-        TextView tvAppVersion = findViewById(R.id.tv_app_version);
-
-        String version = "";
-        try {
-            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
-            version = pInfo.versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-        String appVersion = getString(R.string.app_version) + " - v" + version;
-        tvAppVersion.setText(appVersion);
-
-        // Añadir animación sutil al logo
-        ivEsp.setAlpha(0f);
-        ivEsp.animate()
-            .alpha(1f)
-            .setDuration(800)
-            .start();
-        
-        // Animación para el botón
-        btnAddDevice.setScaleX(0.9f);
-        btnAddDevice.setScaleY(0.9f);
-        btnAddDevice.setAlpha(0f);
-        btnAddDevice.animate()
-            .scaleX(1f)
-            .scaleY(1f)
-            .alpha(1f)
-            .setStartDelay(300)
-            .setDuration(500)
-            .start();
-        
-        // Botón para recuperar dispositivo ya conectado
-        TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
-        tvRecoverDevice.setOnClickListener(v -> {
-            // Mostrar diálogo de progreso
-            AlertDialog progressDialog = new AlertDialog.Builder(this)
-                .setTitle("Buscando dispositivos")
-                .setMessage("Buscando dispositivos MediWatch ya conectados a la red...")
-                .setCancelable(false)
-                .create();
-            progressDialog.show();
-            
-            // Ejecutar búsqueda en segundo plano
-            new Thread(() -> {
-                try {
-                    // Intentar buscar dispositivos mediante ping-pong MQTT
-                    boolean deviceFound = findDeviceViaMqttPingPong();
-                    
-                    // Actualizar UI en hilo principal
-                    runOnUiThread(() -> {
-                        progressDialog.dismiss();
-                        
-                        // En el listener del botón "¿Ya tienes un dispositivo conectado a WiFi?"
-                        // Cuando el dispositivo responde:
-                        if (deviceFound) {
-                            Toast.makeText(this, "¡Dispositivo encontrado! Conectando...", Toast.LENGTH_SHORT).show();
-                            
-                            // Redireccionar a MqttActivity
-                            String deviceId = "mediwatch_" + System.currentTimeMillis(); // ID genérico, la autenticación es por tópico
-                            
-                            // Guardar en SharedPreferences
-                            SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-                            SharedPreferences.Editor editor = prefs.edit();
-                            editor.putBoolean(KEY_IS_PROVISIONED, true);
-                            editor.putString(KEY_DEVICE_ID, deviceId);
-                            editor.apply();
-                            
-                            // Abrir dashboard MQTT - Esto inicia MqttActivity
-                            openMqttDashboard(deviceId);
-                        } else {
-                            // No se encontró el dispositivo, mostrar opciones adicionales
-                            showNoDeviceFoundDialog();
-                        }
-                    });
-                    
-                } catch (Exception e) {
-                    Log.e(TAG, "Error buscando dispositivos: " + e.getMessage(), e);
-                    
-                    // Actualizar UI en hilo principal
-                    runOnUiThread(() -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
+    private void handleAddDeviceClick() {
+        if (coordinator.isLocationRequired() && !coordinator.isLocationEnabled()) {
+            DialogManager.showLocationDialog(this, new DialogManager.DialogCallback() {
+                @Override
+                public void onPositiveButton() {
+                    startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), 
+                            AppConstants.REQUEST_LOCATION);
                 }
-            }).start();
-        });
-    }
-
-    // Reemplazar con este método unificado
-    private void openMqttDashboard(String deviceId) {
-        // Verificar una vez más que tengamos un deviceId válido
-        if (deviceId == null || deviceId.isEmpty()) {
-            Log.e(TAG, "Error: Intento de abrir MQTT Dashboard sin ID de dispositivo");
-            Toast.makeText(this, "Error: No hay dispositivo asociado", Toast.LENGTH_LONG).show();
-            
-            // Limpiar estado para forzar el aprovisionamiento
-            SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean(KEY_IS_PROVISIONED, false);
-            editor.putString(KEY_DEVICE_ID, "");
-            editor.apply();
+                @Override
+                public void onNegativeButton() {
+                    // Do nothing
+                }
+            });
             return;
         }
-        
-        // Ahora sí, iniciar MqttActivity con el deviceId
-        Intent intent = new Intent(EspMainActivity.this, MqttActivity.class);
-        intent.putExtra("DEVICE_ID", deviceId);
-        startActivity(intent);
-        
-        // Añadir animación de transición
-        overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
-    
-        finish();
+        startProvisioningFlow();
     }
 
-    View.OnClickListener addDeviceBtnClickListener = new View.OnClickListener() {
-
-        @Override
-        public void onClick(View v) {
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-
-                if (!isLocationEnabled()) {
-                    askForLocation();
-                    return;
-                }
-            }
-            addDeviceClick();
-        }
-    };
-
     private void addDeviceClick() {
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-
-            if (!isLocationEnabled()) {
-                askForLocation();
-                return;
-            }
-        }
-
-        if (deviceType.equals(AppConstants.DEVICE_TYPE_BLE) || deviceType.equals(AppConstants.DEVICE_TYPE_BOTH)) {
-
-            final BluetoothManager bluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
-            BluetoothAdapter bleAdapter = bluetoothManager.getAdapter();
-
-            if (!bleAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+        String deviceType = coordinator.getDeviceType();
+        
+        if (deviceType.equals(AppConstants.DEVICE_TYPE_BLE) || 
+            deviceType.equals(AppConstants.DEVICE_TYPE_BOTH)) {
+            
+            if (!coordinator.isBluetoothEnabled()) {
+                startActivityForResult(coordinator.getEnableBluetoothIntent(), 
+                    AppConstants.REQUEST_ENABLE_BT);
             } else {
                 startProvisioningFlow();
             }
@@ -349,72 +257,12 @@ public class EspMainActivity extends AppCompatActivity {
     }
 
     private void startProvisioningFlow() {
+        String deviceType = coordinator.getDeviceType();
+        boolean isSec1 = coordinator.isSecurityEnabled();
+        int securityType = isSec1 ? 1 : 0;
 
-        deviceType = sharedPreferences.getString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
-        final boolean isSec1 = sharedPreferences.getBoolean(AppConstants.KEY_SECURITY_TYPE, true);
-        Log.d(TAG, "Device Types : " + deviceType);
-        Log.d(TAG, "isSec1 : " + isSec1);
-        int securityType = 0;
-        if (isSec1) {
-            securityType = 1;
-        }
-
-        if (deviceType.equals(AppConstants.DEVICE_TYPE_BLE)) {
-
-            if (isSec1) {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_1);
-            } else {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_0);
-            }
-            goToBLEProvisionLandingActivity(securityType);
-
-        } else if (deviceType.equals(AppConstants.DEVICE_TYPE_SOFTAP)) {
-
-            if (isSec1) {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_1);
-            } else {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_0);
-            }
-            goToWiFiProvisionLandingActivity(securityType);
-
-        } else {
-
-            final String[] deviceTypes = {"BLE", "SoftAP"};
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setCancelable(true);
-            builder.setTitle(R.string.dialog_msg_device_selection);
-            final int finalSecurityType = securityType;
-            builder.setItems(deviceTypes, new DialogInterface.OnClickListener() {
-
-                @Override
-                public void onClick(DialogInterface dialog, int position) {
-
-                    switch (position) {
-                        case 0:
-
-                            if (isSec1) {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_1);
-                            } else {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_0);
-                            }
-                            goToBLEProvisionLandingActivity(finalSecurityType);
-                            break;
-
-                        case 1:
-
-                            if (isSec1) {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_1);
-                            } else {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_0);
-                            }
-                            goToWiFiProvisionLandingActivity(finalSecurityType);
-                            break;
-                    }
-                    dialog.dismiss();
-                }
-            });
-            builder.show();
-        }
+        coordinator.createDevice(deviceType, isSec1);
+        NavigationManager.goToProvisioning(this, deviceType, securityType);
     }
 
     private void askForLocation() {
@@ -429,7 +277,7 @@ public class EspMainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
 
-                startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_LOCATION);
+                startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), AppConstants.REQUEST_LOCATION);
             }
         });
 
@@ -442,28 +290,6 @@ public class EspMainActivity extends AppCompatActivity {
         });
 
         builder.show();
-    }
-
-    private boolean isLocationEnabled() {
-
-        boolean gps_enabled = false;
-        boolean network_enabled = false;
-        LocationManager lm = (LocationManager) getApplicationContext().getSystemService(Activity.LOCATION_SERVICE);
-
-        try {
-            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
-        } catch (Exception ex) {
-        }
-
-        try {
-            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-        } catch (Exception ex) {
-        }
-
-        Log.d(TAG, "GPS Enabled : " + gps_enabled + " , Network Enabled : " + network_enabled);
-
-        boolean result = gps_enabled || network_enabled;
-        return result;
     }
 
     private void goToBLEProvisionLandingActivity(int securityType) {
@@ -483,143 +309,37 @@ public class EspMainActivity extends AppCompatActivity {
     // Método para ser llamado cuando el aprovisionamiento se completa
     public void onProvisioningComplete(String deviceId) {
         if (deviceId == null || deviceId.isEmpty()) {
-            Log.e(TAG, "Error: ID de dispositivo vacío después del aprovisionamiento");
-            Toast.makeText(this, "Error: No se recibió ID de dispositivo", Toast.LENGTH_LONG).show();
+            Log.e(TAG, AppConstants.ERROR_EMPTY_DEVICE_ID);
+            Toast.makeText(this, AppConstants.ERROR_NO_DEVICE_ID, Toast.LENGTH_LONG).show();
             return;
         }
         
-        Log.d(TAG, "Aprovisionamiento completado exitosamente. ID: " + deviceId);
-        
-        // Guardar el estado de aprovisionamiento
-        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putBoolean(KEY_IS_PROVISIONED, true);
-        editor.putString(KEY_DEVICE_ID, deviceId);
-        editor.apply();
-        
-        // Abrir el MQTT Dashboard
-        openMqttDashboard(deviceId);
+        Log.d(TAG, String.format(AppConstants.LOG_PROVISIONING_SUCCESS, deviceId));
+        coordinator.saveProvisioningState(deviceId);
+        NavigationManager.goToMqttDashboard(this, deviceId);
     }
 
-    /**
-     * Intenta buscar un dispositivo ya conectado mediante ping-pong MQTT
-     * @return true si se encontró un dispositivo activo
-     */
-    private boolean findDeviceViaMqttPingPong() {
-        final String BROKER_URI = "tcp://broker.emqx.io:1883"; // Mismo broker que usa MqttActivity
-        final String CLIENT_ID = "AndroidFinder_" + System.currentTimeMillis();
-        final String TOPIC_PUBLISH = "/device/commands"; // Mismo tópico que usa MqttActivity
-        final String TOPIC_SUBSCRIBE = "/device/status"; // Donde escucharemos respuestas
-        final long TIMEOUT_MS = 10000; // 10 segundos de espera máxima
-        
-        // Variables para sincronización
-        final boolean[] deviceResponded = {false};
-        final CountDownLatch latch = new CountDownLatch(1);
-        
-        MqttClient mqttClient = null;
-        
-        try {
-            // Conectar al broker MQTT
-            mqttClient = new MqttClient(BROKER_URI, CLIENT_ID, null);
-            
-            MqttConnectOptions options = new MqttConnectOptions();
-            options.setCleanSession(true);
-            options.setConnectionTimeout(10); // 10 segundos para conectar
-            
-            mqttClient.connect(options);
-            
-            // Configurar callback para recibir respuestas
-            mqttClient.setCallback(new MqttCallback() {
-                @Override
-                public void connectionLost(Throwable cause) {
-                    Log.e(TAG, "Conexión MQTT perdida durante búsqueda", cause);
-                    latch.countDown(); // Liberar el latch para continuar
-                }
-                
-                @Override
-                public void messageArrived(String topic, MqttMessage message) {
-                    String payload = new String(message.getPayload());
-                    Log.d(TAG, "Mensaje recibido en tópico " + topic + ": " + payload);
-                    
-                    try {
-                        // Verificar si el mensaje es un "pong" o tiene formato de estado online
-                        JSONObject json = new JSONObject(payload);
-                        
-                        if ((json.has("type") && "pong".equals(json.getString("type"))) || 
-                            (json.has("status") && "online".equals(json.getString("status")))) {
-                            Log.d(TAG, "¡Dispositivo encontrado! Respuesta: " + payload);
-                            deviceResponded[0] = true;
-                            latch.countDown(); // Liberar el latch para continuar
-                        }
-                    } catch (JSONException e) {
-                        Log.e(TAG, "Error al analizar respuesta JSON", e);
-                    }
-                }
-                
-                @Override
-                public void deliveryComplete(IMqttDeliveryToken token) {
-                    Log.d(TAG, "Mensaje de búsqueda enviado correctamente");
-                }
-            });
-            
-            // Suscribirse al tópico de respuestas
-            mqttClient.subscribe(TOPIC_SUBSCRIBE, 1); // QoS 1
-            
-            // Enviar ping para provocar respuesta
-            JSONObject pingMessage = new JSONObject();
-            pingMessage.put("type", "ping");
-            pingMessage.put("finder", true);
-            pingMessage.put("timestamp", System.currentTimeMillis());
-            
-            MqttMessage message = new MqttMessage(pingMessage.toString().getBytes());
-            message.setQos(1); // QoS 1 para garantizar entrega
-            mqttClient.publish(TOPIC_PUBLISH, message);
-            
-            Log.d(TAG, "Ping enviado: " + pingMessage.toString());
-            
-            // Esperar respuesta o timeout
-            latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            
-            return deviceResponded[0];
-        } catch (Exception e) {
-            Log.e(TAG, "Error en búsqueda MQTT", e);
-            return false;
-        } finally {
-            // Limpiar recursos
-            if (mqttClient != null && mqttClient.isConnected()) {
-                try {
-                    mqttClient.disconnect();
-                    mqttClient.close();
-                } catch (MqttException e) {
-                    Log.e(TAG, "Error al desconectar cliente MQTT de búsqueda", e);
-                }
-            }
+    private void openMqttDashboard(String deviceId) {
+        if (deviceId == null || deviceId.isEmpty()) {
+            Log.e(TAG, AppConstants.ERROR_INVALID_DEVICE_ID);
+            Toast.makeText(this, AppConstants.ERROR_NO_DEVICE_ASSOCIATED, Toast.LENGTH_LONG).show();
+            coordinator.clearProvisioningState();
+            return;
         }
+        
+        Intent intent = new Intent(this, MqttActivity.class);
+        intent.putExtra(AppConstants.EXTRA_DEVICE_ID, deviceId);
+        ActivityTransitionAnimator.startActivityWithSlideAnimation(this, intent);
+        finish();
     }
 
-    /**
-     * Muestra diálogo cuando no se encuentra ningún dispositivo
-     */
-    private void showNoDeviceFoundDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Dispositivo no encontrado");
-        builder.setMessage("No se detectó ningún dispositivo MediWatch conectado a la red. ¿Qué deseas hacer?");
-        
-        builder.setPositiveButton("Configurar nuevo dispositivo", (dialog, which) -> {
-            // Iniciar flujo normal de aprovisionamiento
-            addDeviceClick();
-        });
-        
-        builder.setNeutralButton("Intentar de nuevo", (dialog, which) -> {
-            // Volver a intentar la búsqueda
-            TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
-            if (tvRecoverDevice != null) {
-                tvRecoverDevice.performClick();
-            }
-        });
-        
-        builder.setNegativeButton("Cancelar", null);
-        
-        builder.show();
+    @Override
+    public void onBackPressed() {
+        boolean fromLogin = getIntent().getBooleanExtra(AppConstants.EXTRA_FROM_LOGIN, false);
+        if (fromLogin) {
+            NavigationManager.backToLogin(this);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
