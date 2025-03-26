@@ -32,7 +32,7 @@ public class MqttActivity extends AppCompatActivity {
     private static final String TAG = "MqttActivity";
     private static final String BROKER_URI = "tcp://broker.emqx.io:1883";
     private static final String CLIENT_ID = "AndroidClient_" + System.currentTimeMillis();
-    private String TOPIC_SUBSCRIBE = "/device/status";
+    private String TOPIC_SUBSCRIBE = "/device/status"; // Ahora subscribimos al mismo topic de status
     private String TOPIC_PUBLISH = "/device/commands";
     private String TOPIC_HEARTBEAT = "/device/heartbeat";
     private String deviceId; // Añadir esta línea
@@ -229,13 +229,14 @@ public class MqttActivity extends AppCompatActivity {
                         // Verificar más frecuentemente durante el periodo de gracia
                         heartbeatHandler.postDelayed(this, CONNECTION_CHECK_INTERVAL);
                         
-                        // Opcional: Enviar un ping para provocar respuesta
+                        // CAMBIO: Enviar ping al tópico de status en lugar del de comandos
                         try {
                             if (mqttClient != null && mqttClient.isConnected()) {
                                 JSONObject pingMessage = new JSONObject();
                                 pingMessage.put("type", "ping");
-                                publishMessage(TOPIC_PUBLISH, pingMessage.toString());
-                                Log.d(TAG, "Ping enviado para verificar conexión");
+                                pingMessage.put("timestamp", System.currentTimeMillis());
+                                publishMessage(TOPIC_SUBSCRIBE, pingMessage.toString()); // Cambiado a TOPIC_SUBSCRIBE
+                                Log.d(TAG, "Ping enviado para verificar conexión al tópico " + TOPIC_SUBSCRIBE);
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Error al enviar ping", e);
@@ -375,7 +376,6 @@ public class MqttActivity extends AppCompatActivity {
                     Log.d(TAG, "Mensaje recibido en " + topic + ": " + receivedMsg);
                     
                     // Reiniciar el temporizador cuando recibimos un mensaje
-                    // pero SIN cambiar el estado de conexión aquí directamente
                     heartbeatHandler.removeCallbacks(heartbeatRunnable);
                     lastMessageTimestamp = System.currentTimeMillis();
                     heartbeatHandler.postDelayed(heartbeatRunnable, HEARTBEAT_TIMEOUT);
@@ -428,7 +428,7 @@ public class MqttActivity extends AppCompatActivity {
                                 pongMessage.put("timestamp", System.currentTimeMillis());
                             }
                             
-                            publishMessage(TOPIC_PUBLISH, pongMessage.toString());
+                            publishMessage(TOPIC_SUBSCRIBE, pongMessage.toString());
                         }
                     } catch (JSONException e) {
                         Log.e(TAG, "Error al procesar JSON recibido", e);
@@ -454,6 +454,20 @@ public class MqttActivity extends AppCompatActivity {
             
             // Iniciar temporizador de heartbeat
             resetHeartbeatTimer();
+
+            // AÑADIDO: Enviar un mensaje inicial de presencia
+            try {
+                JSONObject presenceMessage = new JSONObject();
+                presenceMessage.put("type", "presence");
+                presenceMessage.put("status", "online");
+                presenceMessage.put("client", "android");
+                presenceMessage.put("timestamp", System.currentTimeMillis());
+                
+                publishMessage(TOPIC_SUBSCRIBE, presenceMessage.toString());
+                Log.d(TAG, "Mensaje de presencia enviado al tópico " + TOPIC_SUBSCRIBE);
+            } catch (Exception e) {
+                Log.e(TAG, "Error al enviar mensaje de presencia", e);
+            }
 
         } catch (MqttException e) {
             Log.e(TAG, "Error al conectar con MQTT", e);

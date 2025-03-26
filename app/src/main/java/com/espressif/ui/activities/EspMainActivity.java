@@ -100,9 +100,20 @@ public class EspMainActivity extends AppCompatActivity {
         if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
             openMqttDashboard(deviceId);
         } else {
-            Intent intent = new Intent(EspMainActivity.this, UserTypeActivity.class);
-            startActivity(intent);
-            finish();
+            // Mostrar diálogo de selección de tipo de usuario
+            DialogUtils.showUserTypeDialog(this, new DialogUtils.UserTypeSelectionCallback() {
+                @Override
+                public void onPatientSelected() {
+                    Intent intent = new Intent(EspMainActivity.this, PatientActivity.class);
+                    startActivity(intent);
+                }
+
+                @Override
+                public void onFamilySelected() {
+                    Intent intent = new Intent(EspMainActivity.this, FamilyActivity.class);
+                    startActivity(intent);
+                }
+            });
         }
     }
 
