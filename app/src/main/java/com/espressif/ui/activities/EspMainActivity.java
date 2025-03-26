@@ -78,22 +78,28 @@ public class EspMainActivity extends AppCompatActivity {
         // Inicializar provisionManager
         provisionManager = ESPProvisionManager.getInstance(getApplicationContext());
         
-        // Inicializar deviceType con valor predeterminado
+        // Inicializar deviceType
         deviceType = sharedPreferences.getString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
         
-        // Inicializar vistas de la UI
+        // Inicializar vistas
         initViews();
-        
-        // Verificar si el usuario ya está aprovisionado
+
+        // Verificar si viene del login
+        boolean fromLogin = getIntent().getBooleanExtra("FROM_LOGIN", false);
+        if (fromLogin) {
+            // Iniciar directamente el flujo de aprovisionamiento
+            startProvisioningFlow();
+            return;
+        }
+
+        // Si no viene del login, seguir con el flujo normal
         SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         boolean isProvisioned = prefs.getBoolean(KEY_IS_PROVISIONED, false);
         String deviceId = prefs.getString(KEY_DEVICE_ID, "");
 
         if (isProvisioned && deviceId != null && !deviceId.isEmpty()) {
-            // Redirigir al dashboard MQTT
             openMqttDashboard(deviceId);
         } else {
-            // Redirigir a la pantalla de selección de tipo de usuario
             Intent intent = new Intent(EspMainActivity.this, UserTypeActivity.class);
             startActivity(intent);
             finish();
