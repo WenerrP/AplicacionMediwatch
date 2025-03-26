@@ -4,6 +4,8 @@ import android.content.Context;
 import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 
+import com.espressif.wifi_provisioning.R;
+
 public class DialogUtils {
 
     public interface DialogActionCallback {

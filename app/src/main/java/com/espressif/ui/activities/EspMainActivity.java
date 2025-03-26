@@ -201,54 +201,48 @@ public class EspMainActivity extends AppCompatActivity {
         // Botón para recuperar dispositivo ya conectado
         TextView tvRecoverDevice = findViewById(R.id.tv_recover_device);
         tvRecoverDevice.setOnClickListener(v -> {
-            // Mostrar diálogo de progreso
-            AlertDialog progressDialog = new AlertDialog.Builder(this)
-                .setTitle("Buscando dispositivos")
-                .setMessage("Buscando dispositivos MediWatch ya conectados a la red...")
-                .setCancelable(false)
-                .create();
-            progressDialog.show();
+            AlertDialog progressDialog = DialogUtils.showProgressDialog(this,
+                "Buscando dispositivos",
+                "Buscando dispositivos MediWatch ya conectados a la red...");
             
-            // Ejecutar búsqueda en segundo plano
-            new Thread(() -> {
-                try {
-                    // Usar la nueva clase utilitaria
-                    boolean deviceFound = MqttDeviceFinder.findDevice();
-                    
-                    // El resto del código permanece igual
+            MqttDeviceFinder.findDevice(new MqttDeviceFinder.DeviceFinderCallback() {
+                @Override
+                public void onDeviceFound(String deviceId) {
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
+                        Toast.makeText(EspMainActivity.this, 
+                            "¡Dispositivo encontrado! Conectando...", 
+                            Toast.LENGTH_SHORT).show();
                         
-                        if (deviceFound) {
-                            Toast.makeText(this, "¡Dispositivo encontrado! Conectando...", Toast.LENGTH_SHORT).show();
-                            
-                            // Redireccionar a MqttActivity
-                            String deviceId = "mediwatch_" + System.currentTimeMillis(); // ID genérico, la autenticación es por tópico
-                            
-                            // Guardar en SharedPreferences
-                            SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
-                            SharedPreferences.Editor editor = prefs.edit();
-                            editor.putBoolean(KEY_IS_PROVISIONED, true);
-                            editor.putString(KEY_DEVICE_ID, deviceId);
-                            editor.apply();
-                            
-                            // Abrir dashboard MQTT - Esto inicia MqttActivity
-                            openMqttDashboard(deviceId);
-                        } else {
-                            showNoDeviceFoundDialog();
-                        }
-                    });
-                    
-                } catch (Exception e) {
-                    Log.e(TAG, "Error buscando dispositivos: " + e.getMessage(), e);
-                    
-                    // Actualizar UI en hilo principal
-                    runOnUiThread(() -> {
-                        progressDialog.dismiss();
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                        // Guardar en SharedPreferences y abrir dashboard
+                        SharedPreferences prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+                        editor.putBoolean(KEY_IS_PROVISIONED, true);
+                        editor.putString(KEY_DEVICE_ID, deviceId);
+                        editor.apply();
+                        
+                        openMqttDashboard(deviceId);
                     });
                 }
-            }).start();
+
+                @Override
+                public void onDeviceNotFound() {
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        showNoDeviceFoundDialog();
+                    });
+                }
+
+                @Override
+                public void onError(String error) {
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(EspMainActivity.this, 
+                            "Error: " + error, 
+                            Toast.LENGTH_LONG).show();
+                    });
+                }
+            });
         });
     }
 
