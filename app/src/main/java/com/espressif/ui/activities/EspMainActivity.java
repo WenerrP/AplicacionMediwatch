@@ -322,72 +322,45 @@ public class EspMainActivity extends AppCompatActivity {
     }
 
     private void startProvisioningFlow() {
-
         deviceType = sharedPreferences.getString(AppConstants.KEY_DEVICE_TYPES, AppConstants.DEVICE_TYPE_DEFAULT);
         final boolean isSec1 = sharedPreferences.getBoolean(AppConstants.KEY_SECURITY_TYPE, true);
         Log.d(TAG, "Device Types : " + deviceType);
         Log.d(TAG, "isSec1 : " + isSec1);
-        int securityType = 0;
-        if (isSec1) {
-            securityType = 1;
-        }
+        int securityType = isSec1 ? 1 : 0;
 
         if (deviceType.equals(AppConstants.DEVICE_TYPE_BLE)) {
-
-            if (isSec1) {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_1);
-            } else {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_0);
-            }
-            goToBLEProvisionLandingActivity(securityType);
-
+            setupBleDevice(isSec1, securityType);
         } else if (deviceType.equals(AppConstants.DEVICE_TYPE_SOFTAP)) {
-
-            if (isSec1) {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_1);
-            } else {
-                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_0);
-            }
-            goToWiFiProvisionLandingActivity(securityType);
-
+            setupSoftApDevice(isSec1, securityType);
         } else {
-
-            final String[] deviceTypes = {"BLE", "SoftAP"};
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setCancelable(true);
-            builder.setTitle(R.string.dialog_msg_device_selection);
-            final int finalSecurityType = securityType;
-            builder.setItems(deviceTypes, new DialogInterface.OnClickListener() {
+            DialogUtils.showDeviceSelectionDialog(this, new DialogUtils.DeviceSelectionCallback() {
+                @Override
+                public void onBleSelected() {
+                    setupBleDevice(isSec1, securityType);
+                }
 
                 @Override
-                public void onClick(DialogInterface dialog, int position) {
-
-                    switch (position) {
-                        case 0:
-
-                            if (isSec1) {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_1);
-                            } else {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_BLE, ESPConstants.SecurityType.SECURITY_0);
-                            }
-                            goToBLEProvisionLandingActivity(finalSecurityType);
-                            break;
-
-                        case 1:
-
-                            if (isSec1) {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_1);
-                            } else {
-                                provisionManager.createESPDevice(ESPConstants.TransportType.TRANSPORT_SOFTAP, ESPConstants.SecurityType.SECURITY_0);
-                            }
-                            goToWiFiProvisionLandingActivity(finalSecurityType);
-                            break;
-                    }
-                    dialog.dismiss();
+                public void onSoftApSelected() {
+                    setupSoftApDevice(isSec1, securityType);
                 }
             });
-            builder.show();
         }
+    }
+
+    private void setupBleDevice(boolean isSec1, int securityType) {
+        provisionManager.createESPDevice(
+            ESPConstants.TransportType.TRANSPORT_BLE,
+            isSec1 ? ESPConstants.SecurityType.SECURITY_1 : ESPConstants.SecurityType.SECURITY_0
+        );
+        goToBLEProvisionLandingActivity(securityType);
+    }
+
+    private void setupSoftApDevice(boolean isSec1, int securityType) {
+        provisionManager.createESPDevice(
+            ESPConstants.TransportType.TRANSPORT_SOFTAP,
+            isSec1 ? ESPConstants.SecurityType.SECURITY_1 : ESPConstants.SecurityType.SECURITY_0
+        );
+        goToWiFiProvisionLandingActivity(securityType);
     }
 
     // Reemplazar el método askForLocation() original con:

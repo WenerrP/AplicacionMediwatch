@@ -2,92 +2,84 @@ package com.espressif.ui.utils;
 
 import android.util.Log;
 import org.eclipse.paho.client.mqttv3.*;
-import org.json.JSONException;
-import org.json.JSONObject;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public class MqttDeviceFinder {
     private static final String TAG = "MqttDeviceFinder";
     private static final String BROKER_URI = "tcp://broker.emqx.io:1883";
-    private static final String TOPIC_PUBLISH = "/device/commands";
-    private static final String TOPIC_SUBSCRIBE = "/device/status";
-    private static final long TIMEOUT_MS = 10000;
+    private static final String STATUS_TOPIC = "mediwatch/status";
+    private static final long TIMEOUT_MS = 5000; // Reducido a 5 segundos
 
-    public static boolean findDevice() {
-        final boolean[] deviceResponded = {false};
-        final CountDownLatch latch = new CountDownLatch(1);
+    public interface DeviceFinderCallback {
+        void onDeviceFound(String deviceId);
+        void onDeviceNotFound();
+        void onError(String error);
+    }
+
+    public static void findDevice(DeviceFinderCallback callback) {
         MqttClient mqttClient = null;
-        
+        final CountDownLatch latch = new CountDownLatch(1);
+        final String[] foundDeviceId = {null};
+
         try {
             String clientId = "AndroidFinder_" + System.currentTimeMillis();
             mqttClient = new MqttClient(BROKER_URI, clientId, null);
             
+            // Configurar opciones de conexión
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             options.setConnectionTimeout(10);
+            options.setAutomaticReconnect(false);
             
+            // Conectar y suscribirse
             mqttClient.connect(options);
-            configureCallbacks(mqttClient, deviceResponded, latch);
-            mqttClient.subscribe(TOPIC_SUBSCRIBE, 1);
-            sendPingMessage(mqttClient);
             
-            latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            return deviceResponded[0];
+            // Configurar callback para mensajes
+            mqttClient.setCallback(new MqttCallback() {
+                @Override
+                public void connectionLost(Throwable cause) {
+                    Log.e(TAG, "Conexión perdida", cause);
+                    latch.countDown();
+                }
+
+                @Override
+                public void messageArrived(String topic, MqttMessage message) {
+                    String payload = new String(message.getPayload());
+                    Log.d(TAG, "Mensaje recibido: " + payload);
+
+                    if ("online".equals(payload)) {
+                        // Extraer deviceId del topic (ejemplo: mediwatch/status/device123)
+                        String[] topicParts = topic.split("/");
+                        if (topicParts.length >= 3) {
+                            foundDeviceId[0] = topicParts[2];
+                            latch.countDown();
+                        }
+                    }
+                }
+
+                @Override
+                public void deliveryComplete(IMqttDeliveryToken token) {}
+            });
+
+            // Suscribirse al topic de estado
+            mqttClient.subscribe(STATUS_TOPIC + "/#", 1);
+
+            // Esperar respuesta o timeout
+            boolean received = latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
             
+            if (foundDeviceId[0] != null) {
+                callback.onDeviceFound(foundDeviceId[0]);
+            } else {
+                callback.onDeviceNotFound();
+            }
+
         } catch (Exception e) {
             Log.e(TAG, "Error en búsqueda MQTT", e);
-            return false;
+            callback.onError(e.getMessage());
         } finally {
             disconnectClient(mqttClient);
         }
-    }
-
-    private static void configureCallbacks(MqttClient client, boolean[] deviceResponded, CountDownLatch latch) {
-        client.setCallback(new MqttCallback() {
-            @Override
-            public void connectionLost(Throwable cause) {
-                Log.e(TAG, "Conexión MQTT perdida durante búsqueda", cause);
-                latch.countDown();
-            }
-            
-            @Override
-            public void messageArrived(String topic, MqttMessage message) {
-                handleMessage(message, deviceResponded, latch);
-            }
-            
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                Log.d(TAG, "Mensaje de búsqueda enviado correctamente");
-            }
-        });
-    }
-
-    private static void handleMessage(MqttMessage message, boolean[] deviceResponded, CountDownLatch latch) {
-        String payload = new String(message.getPayload());
-        Log.d(TAG, "Mensaje recibido: " + payload);
-        
-        try {
-            JSONObject json = new JSONObject(payload);
-            if ((json.has("type") && "pong".equals(json.getString("type"))) || 
-                (json.has("status") && "online".equals(json.getString("status")))) {
-                deviceResponded[0] = true;
-                latch.countDown();
-            }
-        } catch (JSONException e) {
-            Log.e(TAG, "Error al analizar respuesta JSON", e);
-        }
-    }
-
-    private static void sendPingMessage(MqttClient client) throws Exception {
-        JSONObject pingMessage = new JSONObject()
-            .put("type", "ping")
-            .put("finder", true)
-            .put("timestamp", System.currentTimeMillis());
-        
-        MqttMessage message = new MqttMessage(pingMessage.toString().getBytes());
-        message.setQos(1);
-        client.publish(TOPIC_PUBLISH, message);
     }
 
     private static void disconnectClient(MqttClient client) {
